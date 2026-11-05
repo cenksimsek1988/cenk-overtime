@@ -1,0 +1,30 @@
+{
+  "name": "cenk-overtime",
+  "version": "0.2.0",
+  "description": "For employees who worked unpaid overtime or extra shifts and want to claim it from their employer, alone or with a lawyer: a case folder in your own Google Drive to share with your lawyer, your overtime hours counted from your own work traces (weekday and weekend apart), and a court-ready report. Not legal advice.",
+  "author": { "name": "Cenk Simsek" },
+  "homepage": "https://github.com/cenksimsek1988/cenk-overtime",
+  "repository": "https://github.com/cenksimsek1988/cenk-overtime",
+  "license": "MIT",
+  "keywords": [
+    "overtime",
+    "unpaid overtime",
+    "extra shifts",
+    "extra hours",
+    "overtime claim",
+    "wage claim",
+    "employment lawsuit",
+    "labour court",
+    "evidence",
+    "timesheet",
+    "fazla mesai",
+    "fazla mesai alacağı",
+    "işçi alacağı davası",
+    "straordinari non pagati",
+    "causa di lavoro",
+    "Überstunden",
+    "Überstundenvergütung",
+    "horas extra",
+    "heures supplémentaires"
+  ]
+}

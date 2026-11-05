@@ -1,0 +1,12 @@
+{
+  "name": "cenk-overtime",
+  "description": "The cenk-overtime plugin, shared from this folder: help for employees claiming unpaid overtime or extra shifts.",
+  "owner": { "name": "Cenk Simsek" },
+  "plugins": [
+    {
+      "name": "cenk-overtime",
+      "source": "./cenk-overtime",
+      "description": "For employees who worked unpaid overtime or extra shifts and want to claim it from their employer, alone or with a lawyer: a case folder in your own Google Drive to share with your lawyer, your overtime hours counted from your own work traces (weekday and weekend apart), and a court-ready report. Not legal advice."
+    }
+  ]
+}

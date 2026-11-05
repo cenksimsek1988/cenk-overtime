@@ -1,0 +1,3 @@
+# The scripts and tests run in bash and need LF line endings on every system.
+* text=auto eol=lf
+*.plugin binary
