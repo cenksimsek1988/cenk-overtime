@@ -58,6 +58,7 @@ The plugin has no hooks, servers or network calls of its own. Your case folder s
 README.md                          this file
 CHANGELOG.md                       what changed in each version
 LICENSE                            MIT
+CLAUDE.md                          notes for Claude when working on this repository
 docs/guide.md                      the method in plain prose
 .claude-plugin/marketplace.json    lets Claude Code install from this repository
 cenk-overtime/                     the plugin

@@ -1,0 +1,41 @@
+# cenk-overtime
+
+Cenk's Claude Code plugin for employees who claim unpaid overtime. Public: github.com/cenksimsek1988/cenk-overtime (MIT). README.md is for people; this file is for the assistant.
+
+## What belongs here
+
+- Generic material only: the plugin, its tests and docs. Case data (documents, figures, git exports, connections) lives in each person's own Drive case folder, never here.
+- Before publishing any text, check it for figures and examples from a real case, not only for names and emails.
+
+## Layout
+
+- `.claude-plugin/marketplace.json`: one-plugin marketplace, source `./cenk-overtime`.
+- `cenk-overtime/skills/`: `start` (intake, case folder, database, git script), `collect`, `analyse`, `court-package`. The last three have `user-invocable: false`; `start` runs them. Cross-references use `cenk-overtime:<skill>`.
+- Skill descriptions: one sentence, then "Use for:" with trigger phrases in English, Turkish, Italian, German, Spanish and French; quoted; at most 1024 characters, no angle brackets (claude.ai's limits).
+
+## Check
+
+- `bash tests/test-git-history.sh`: 54 checks on throwaway repositories in the temp folder; `CASE_DIR=<new folder>` puts the case folder elsewhere, such as Google Drive.
+- `claude plugin validate --strict` on `cenk-overtime`, `cenk-overtime/skills` and the repository root.
+
+## Release
+
+1. Raise `version` in `cenk-overtime/.claude-plugin/plugin.json`; add a CHANGELOG entry.
+2. Run the checks, commit with `/cenk-workbench:commit`, push.
+3. Zip the contents of `cenk-overtime/` (`.claude-plugin/plugin.json` at the zip root) as `cenk-overtime.plugin`; `gh release create vX.Y.Z cenk-overtime.plugin --latest`.
+4. `claude plugin marketplace update cenk-overtime`, then `claude plugin update cenk-overtime@cenk-overtime` (Cenk's install uses this folder as a directory marketplace).
+
+## Quirks
+
+- Install from the HTTPS address; the `owner/repo` form clones over SSH and fails without a GitHub host key.
+- `user-invocable` is not among claude.ai's allowed front-matter keys, so the `.plugin` upload may reject it.
+- Google Drive for desktop ignores the read-only flag; the skills rely on SHA-256 hashes.
+- `sha256sum` on Windows writes ` *` before each path.
+- The repository's git identity is set locally; the machine's global identity belongs to a former employer and must not be used.
+- The test's two fake credential URLs carry `secret-scan: allow`.
+
+## Open
+
+- The `.plugin` upload to claude.ai is untested for 0.2.x.
+- Not tested: the `sqlite3` command-line path; macOS and Linux `awk`.
+- No submission to Anthropic's official plugin directory yet.
