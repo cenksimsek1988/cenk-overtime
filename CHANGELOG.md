@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- Added `docs/guide.md`: the method in plain prose for employees, lawyers and court experts, with made-up examples instead of figures from a real case. The plugin itself is unchanged.
+- Dropped the Google Drive install route: install from GitHub. The `.plugin` file for claude.ai is attached to each GitHub release.
+
 ## 0.2.0 - 2026-11-05
 
 - Renamed the plugin and its marketplace from `overtime-evidence` to `cenk-overtime`, and the skills to `start`, `collect`, `analyse` and `court-package`, so every skill shows which plugin it belongs to. Installs of 0.1.0 have to be removed and installed again under the new name.

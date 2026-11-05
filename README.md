@@ -6,6 +6,8 @@ What you get: a case folder in your own Google Drive to share with your lawyer, 
 
 Not legal advice. What you may collect and use depends on your country and contract, so ask a lawyer, especially before accessing employer systems after your job has ended.
 
+The method itself, in plain prose for employees, lawyers and court experts, is in [docs/guide.md](docs/guide.md).
+
 ## Skills
 
 Start with `/cenk-overtime:start`, or just say "I want to claim my unpaid overtime". It runs the other three when their turn comes, so only `start` appears in the `/` menu.
@@ -25,8 +27,6 @@ Start with `/cenk-overtime:start`, or just say "I want to claim my unpaid overti
 
 ## Install in Claude Code
 
-From GitHub, for anyone:
-
 ```bash
 claude plugin marketplace add https://github.com/cenksimsek1988/cenk-overtime.git
 ```
@@ -34,24 +34,7 @@ claude plugin marketplace add https://github.com/cenksimsek1988/cenk-overtime.gi
 claude plugin install cenk-overtime@cenk-overtime
 ```
 
-Use the `https://` address as written: the short form `cenksimsek1988/cenk-overtime` makes Claude Code clone over SSH, which fails on computers that have never connected to GitHub that way.
-
-Or from the Google Drive folder, if it was shared with you:
-
-1. In Google Drive, open the folder `overtime-evidence-plugin`, choose Organize, then Add shortcut, and place the shortcut in My Drive. Drive for desktop then shows it:
-   - Windows: `X:\My Drive\overtime-evidence-plugin`, where `X` is Google Drive's drive letter
-   - macOS: `~/Library/CloudStorage/GoogleDrive-<your email>/My Drive/overtime-evidence-plugin`
-
-   You can also download the folder and unzip it anywhere.
-2. Add the folder as a marketplace and install the plugin:
-   ```bash
-   claude plugin marketplace add "<path to overtime-evidence-plugin>"
-   ```
-   ```bash
-   claude plugin install cenk-overtime@cenk-overtime
-   ```
-
-Both routes name the marketplace `cenk-overtime`, so add only one of them. Then start a new Claude Code session and type `/cenk-overtime:start`.
+Use the `https://` address as written: the short form `cenksimsek1988/cenk-overtime` makes Claude Code clone over SSH, which fails on computers that have never connected to GitHub that way. Then start a new Claude Code session and type `/cenk-overtime:start`.
 
 To get a newer version later:
 ```bash
@@ -61,9 +44,9 @@ claude plugin marketplace update cenk-overtime
 claude plugin update cenk-overtime@cenk-overtime
 ```
 
-## Install in the Claude desktop app (Cowork)
+## Install in claude.ai or the Claude desktop app
 
-The Google Drive folder also holds `cenk-overtime.plugin`: the same plugin packed as one file, for Cowork, where plugins are added from a file instead of a command. Open it in a Cowork session and accept the plugin. This route has not been tested yet; the Claude Code routes above have.
+Each [GitHub release](https://github.com/cenksimsek1988/cenk-overtime/releases) has `cenk-overtime.plugin`: the same plugin packed as one file, for where plugins are added from a file instead of a command. Download it from the latest release and add it as a plugin. This route has not been tested with this version; the Claude Code route above has.
 
 ## Your data
 
@@ -75,9 +58,9 @@ The plugin has no hooks, servers or network calls of its own. Your case folder s
 README.md                          this file
 CHANGELOG.md                       what changed in each version
 LICENSE                            MIT
-.claude-plugin/marketplace.json    lets Claude Code install from this repository or folder
+docs/guide.md                      the method in plain prose
+.claude-plugin/marketplace.json    lets Claude Code install from this repository
 cenk-overtime/                     the plugin
-cenk-overtime.plugin               the plugin as one file, for Cowork (Google Drive folder only)
 tests/test-git-history.sh          checks for the git history script (bash tests/test-git-history.sh)
 ```
 
