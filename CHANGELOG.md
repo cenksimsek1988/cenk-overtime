@@ -1,8 +1,8 @@
 # Changelog
 
-## Unreleased
+## 0.2.1 - 2026-11-05
 
-- Added `docs/guide.md`: the method in plain prose for employees, lawyers and court experts, with made-up examples instead of figures from a real case. The plugin itself is unchanged.
+- Added `docs/guide.md`: the method in plain prose for employees, lawyers and court experts, with made-up examples instead of figures from a real case. The skills are unchanged from 0.2.0.
 - Dropped the Google Drive install route: install from GitHub. The `.plugin` file for claude.ai is attached to each GitHub release.
 
 ## 0.2.0 - 2026-11-05
