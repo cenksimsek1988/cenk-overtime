@@ -1,6 +1,6 @@
 {
   "name": "cenk-overtime",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "For employees who worked unpaid overtime or extra shifts and want to claim it from their employer, alone or with a lawyer: a case folder in your own Google Drive to share with your lawyer, your overtime hours counted from your own work traces (weekday and weekend apart), and a court-ready report. Not legal advice.",
   "author": { "name": "Cenk Simsek" },
   "homepage": "https://github.com/cenksimsek1988/cenk-overtime",

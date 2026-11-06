@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.0 - 2026-11-06
+
+- `start` now begins by listing the cases already in `My Drive/overtime-cases/` of every Google Drive account on the computer and asking whether to continue one of them or start a new one. For an existing case it asks only the intake questions that the case's `case_info` and README leave open, then goes on from the first step that is not done, so a case can be picked up in a later session.
+
 ## 0.2.1 - 2026-11-05
 
 - Added `docs/guide.md`: the method in plain prose for employees, lawyers and court experts, with made-up examples instead of figures from a real case. The skills are unchanged from 0.2.0.

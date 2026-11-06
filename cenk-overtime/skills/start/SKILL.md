@@ -1,11 +1,11 @@
 ---
 name: "start"
-description: "Starts an unpaid overtime or extra-shift claim and guides it to a court-ready report: asks about your job, contract hours and the evidence you already have, creates a case folder in your own Google Drive to share with your lawyer, brings your evidence in with hashes, reads your git history, then runs cenk-overtime:collect, :analyse and :court-package in order. Use for: I worked unpaid overtime, my extra shifts were never paid, claim overtime from my employer, prepare my overtime case for my lawyer, fazla mesai hesapla, fazla mesai davası açacağım, fazla mesai alacağımı nasıl kanıtlarım, işçi alacağı davası, straordinari non pagati, causa di lavoro per gli straordinari, unbezahlte Überstunden, Überstunden nachweisen, Überstundenvergütung einklagen, horas extra no pagadas, reclamar horas extra, heures supplémentaires non payées, prouver mes heures supplémentaires."
+description: "Starts an unpaid overtime or extra-shift claim, or picks up one you started before, and guides it to a court-ready report: asks about your job, contract hours and the evidence you already have, creates a case folder in your own Google Drive to share with your lawyer, brings your evidence in with hashes, reads your git history, then runs cenk-overtime:collect, :analyse and :court-package in order. Use for: I worked unpaid overtime, my extra shifts were never paid, claim overtime from my employer, prepare my overtime case for my lawyer, fazla mesai hesapla, fazla mesai davası açacağım, fazla mesai alacağımı nasıl kanıtlarım, işçi alacağı davası, straordinari non pagati, causa di lavoro per gli straordinari, unbezahlte Überstunden, Überstunden nachweisen, Überstundenvergütung einklagen, horas extra no pagadas, reclamar horas extra, heures supplémentaires non payées, prouver mes heures supplémentaires."
 ---
 
 # Overtime evidence: start here
 
-The single entry point for an overtime case. This skill owns the intake, the case folder, sharing it with the lawyers, the master database and git history. The detail of each later stage lives in three skills of this plugin, used in this order:
+The single entry point for an overtime case. This skill owns the choice of case, the intake, the case folder, sharing it with the lawyers, the master database and git history. The detail of each later stage lives in three skills of this plugin, used in this order:
 
 1. `cenk-overtime:collect`: getting the remaining traces and normalizing them.
 2. `cenk-overtime:analyse`: definitions, counts, hour estimates, release and incident relation.
@@ -15,9 +15,18 @@ Where this skill and one of them differ, this skill wins: case folder, sharing, 
 
 In the first message, say that this is not legal advice: rules on what evidence may be collected and used differ by country and contract, and a lawyer should confirm them, especially access to employer systems after the job has ended.
 
+## 0. Which case
+
+Before the intake, find the cases the person already has: the folders in `My Drive/overtime-cases/` of every Google Drive account on the computer (section 3 says where each account appears). For each case, read only its `README.md` and, if `master.sqlite` exists, its `case_info` table. Do not open `originals/`, `git/` or `work/` yet.
+
+In the first message, list the cases found (name, account, last change) and ask whether to continue one of them or start a new one. If none is found, say so and go on to the intake.
+
+- **New case:** sections 1 to 7 in order.
+- **Existing case:** show what `case_info` and `README.md` already answer, ask the intake questions that are still open (in one message, as in section 1), and save the answers in `case_info`. Then go on from the first of sections 3 to 7 that is not done, for example section 4 when there is no `master.sqlite` yet. Files from earlier work that do not fit the layout in section 3 stay where they are: ask before moving or redoing any of them.
+
 ## 1. Intake (one message)
 
-Ask everything at once, in the person's language, and wait for the answers:
+For a new case, ask everything at once, in the person's language, and wait for the answers:
 
 1. **Job:** role and what a working day looked like (code, support, sales, shifts...). This picks the sources in section 2.
 2. **Contract:** working hours and days, and the contract's time zone. Where they actually lived and worked.

@@ -14,7 +14,7 @@ Start with `/cenk-overtime:start`, or just say "I want to claim my unpaid overti
 
 | Skill | What it does |
 |---|---|
-| `cenk-overtime:start` | Asks about your job, contract hours and the evidence you already have, creates the case folder in your Google Drive, sets up the database, brings your evidence in with hashes, and reads your git history |
+| `cenk-overtime:start` | Picks up a case you started before or starts a new one; asks about your job, contract hours and the evidence you already have, creates the case folder in your Google Drive, sets up the database, brings your evidence in with hashes, and reads your git history |
 | `cenk-overtime:collect` | Finds and collects your remaining work traces and puts them in one table |
 | `cenk-overtime:analyse` | Counts your out-of-hours work and estimates the hours, conservatively and continuously, weekday and weekend apart |
 | `cenk-overtime:court-package` | Masks passwords and private life, and builds the reports, spreadsheet and hashes for your lawyer and the court |
