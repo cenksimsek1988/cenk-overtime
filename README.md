@@ -14,16 +14,17 @@ Start with `/cenk-overtime:start`, or just say "I want to claim my unpaid overti
 
 | Skill | What it does |
 |---|---|
-| `cenk-overtime:start` | Picks up a case you started before or starts a new one; asks about your job, contract hours and the evidence you already have, creates the case folder in your Google Drive, sets up the database, brings your evidence in with hashes, and reads your git history |
-| `cenk-overtime:collect` | Finds and collects your remaining work traces and puts them in one table |
-| `cenk-overtime:analyse` | Counts your out-of-hours work and estimates the hours, conservatively and continuously, weekday and weekend apart |
+| `cenk-overtime:start` | Picks up a case you started before or starts a new one; installs the free programs your case needs after your yes; asks about your job, contract hours and the evidence you already have, creates the case folder in your Google Drive, sets up the database, brings your evidence in with hashes, and reads your git history |
+| `cenk-overtime:collect` | Finds and collects your remaining work traces, reads PDFs, scans, office files, mail archives and screen recordings, and puts them in one table |
+| `cenk-overtime:analyse` | Counts your out-of-hours work and estimates the hours, conservatively and continuously, weekday and weekend apart; tests the patterns with regression models and explains them in plain words |
 | `cenk-overtime:court-package` | Masks passwords and private life, and builds the reports, spreadsheet and hashes for your lawyer and the court |
 
 ## What you need
 
 - Claude Code: the terminal, an IDE extension, or the Code tab of the Claude desktop app. It does not work in claude.ai chat: it needs your files, git and a shell on your computer. Not tested in Cowork.
 - Google Drive for desktop, signed in with your own Google account, never your employer's.
-- For git history: git, bash (Git Bash on Windows), and Python 3 or the `sqlite3` tool.
+- Python 3. The plugin checks for the other free programs it needs (for scanned pages, screen recordings and the calculations) and installs them from their official sources after your yes.
+- For git history: git and bash (Git Bash on Windows).
 
 ## Install in Claude Code
 
@@ -56,7 +57,7 @@ Each [GitHub release](https://github.com/cenksimsek1988/cenk-overtime/releases) 
 
 The plugin has no hooks, servers or tracking, and sends nothing to its author. Your case folder stays in your own Google Drive and on your computer; Claude reads what you work on with it, as with anything else.
 
-- Network: it clones the employer repositories you name, with your own git login, into `overtime-clones` in your home folder, and deletes each clone after the git history is read.
+- Network: it clones the employer repositories you name, with your own git login, into `overtime-clones` in your home folder, and deletes each clone after the git history is read. After your yes, it downloads free programs and Python packages from their official sources (winget, Homebrew, apt, PyPI, the Tesseract project); no case data goes with them.
 - Your case folder syncs to Google Drive through Google Drive for desktop.
 - Connectors you already have (Microsoft 365, Gmail, Google Drive) are used with your sign-in, to search your sent messages or to share the case's `for-lawyer` folder.
 - Only the `for-lawyer` folder is shared, and only after your yes for each email address. The case database, git tables and working files stay unshared.
@@ -78,6 +79,8 @@ cenk-overtime/                     the plugin
 cenk-overtime/README.md            the plugin's own description, example prompts, what it runs and sends
 cenk-overtime/LICENSE              the same MIT license, so it travels with every install
 tests/test-git-history.sh          checks for the git history script (bash tests/test-git-history.sh)
+tests/test-check-tools.sh          checks for the tools check (sh tests/test-check-tools.sh)
+tests/test-models.sh               checks for the regression models on a made-up case (sh tests/test-models.sh)
 ```
 
 ## License

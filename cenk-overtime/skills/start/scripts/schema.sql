@@ -124,6 +124,27 @@ CREATE TABLE IF NOT EXISTS decisions (
   decided_by  TEXT NOT NULL   -- person, claude
 );
 
+-- One row per calendar day of the window, filled by cenk-overtime:analyse from
+-- traces, commits and its events (query in work/queries/days.sql) and read by
+-- its scripts/models.py. The day is the activity day in the contract zone: a
+-- night trace counts for the evening before.
+CREATE TABLE IF NOT EXISTS days (
+  day           TEXT PRIMARY KEY,           -- YYYY-MM-DD
+  off           TEXT,                       -- holiday, leave or sick; left out of the models. NULL on other days
+  phase         TEXT,                       -- employer or role period the person named; NULL when there is one
+  ooh_traces    INTEGER NOT NULL,           -- counted out-of-hours traces of the core tier: messages, mail, calls, commits
+  ooh_chat      INTEGER,                    -- of which chat messages
+  ooh_mail      INTEGER,                    -- of which sent mail
+  ooh_commits   INTEGER,                    -- of which commits
+  last_chat_h   REAL,                       -- last counted chat message, hours on the activity day: 21:30 = 21.5, 01:30 after midnight = 25.5
+  last_mail_h   REAL,
+  last_commit_h REAL,
+  release       INTEGER NOT NULL DEFAULT 0, -- 1 when a release was done or in progress that day, or a release tag or branch dates it
+  patch         INTEGER NOT NULL DEFAULT 0,
+  incident      INTEGER NOT NULL DEFAULT 0,
+  events_from   TEXT                        -- message, git or both: what dated that day's events
+);
+
 CREATE VIEW IF NOT EXISTS v_repo_summary AS
 SELECT repo,
        count(*)                AS own_commits,

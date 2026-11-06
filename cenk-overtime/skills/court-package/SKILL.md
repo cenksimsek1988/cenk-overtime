@@ -26,7 +26,7 @@ Rescan after every scope change (new chats, git) and scan every output format, n
 ## 2. Private life
 
 1. Agree the policy with the person first. Default: group A = their own non-work private matters (masked on request); group B = anyone else's private information (health, family, relationships, bereavement, legal matters, finances, gossip) = always masked. The person may choose to keep their own items that support the claim (e.g. own illness or therapy showing strain).
-2. Read every non-empty message, not keyword hits. Split into chunks of ~800 messages; brief parallel reviewers (subagents) with one written brief: categories, what not to flag (work content, complaints about workload, idioms, small talk), output `{id, group, topic}` only, never quoted text, plus up to 10 unsure ids.
+2. Read every non-empty message, not keyword hits. Split into chunks of ~800 messages; brief parallel reviewers (subagents) with one written brief: categories, what not to flag (work content, complaints about workload, idioms, small talk), output `{id, group, topic}` only, never quoted text, plus up to 10 unsure ids. Reviewers: model `opus`, effort `high`. Telling private matters from work is legally sensitive judgment, often in more than one language, and a miss puts someone's private life in front of the employer and the court.
 3. Merge, then decide borderline cases yourself with context: keep items that help the claim per the person's policy; mask items that could be used against them (job search, side-business plans for evenings/weekends, alcohol/drugs, immigration status, address/finances) and tell the person these exist so the lawyer can decide.
 4. Run keyword safety-net sweeps after the review (immigration/visa/citizenship, legal/court, health of others, politics/religion, money, job offers) and check hits in context.
 5. Check messages excluded from review (empty or already masked) and old placeholders from earlier policies.
@@ -42,9 +42,9 @@ Customer names stay out of the narrative PDFs (scan for the known list); the pac
 1_Summary.pdf            3-4 pages
 2_Report.pdf             full report with annexes
 3_Data_Tables.xlsx       one sheet per table; summary sheet with live formulas
-4_Database/              db.sqlite, csv/, sample_queries.sql
+4_Database/              db.sqlite (days and model_results too), csv/, sample_queries.sql
 5_Raw_Data/              masked records (jsonl), collection_notes.json, git_metadata.json
-6_Method_and_Tool/       tool/ (scripts + mask list), HOW_TO_USE.txt
+6_Method_and_Tool/       tool/ (scripts + mask list), models/ (models.py, model-* files), HOW_TO_USE.txt
 HASHES_SHA256.txt
 README.txt               AI notice (section 4), contents, confidentiality, verification, hash deposit
 ```
@@ -57,7 +57,9 @@ AI notice, in the report's language, under the title of `1_Summary.pdf` and `2_R
 
 Summary: title with period and person; data source and collection date; raw-data hash; 6 key-number tiles (each with the all-chats figure in brackets); findings bullets, each with one quoted example and its date/time and a reference to the report section; a box "What this report does not show" (no pay calculation, estimates only, traceless work invisible, content not judged message by message); weekly chart; core vs all-chats table; time-estimate table (weekday/weekend/total); event-day chart and table; period-group table.
 
-Full report: 1 summary, 2 data/definitions/method (collection, windows, two clocks, tense model, version completion, masking), 3 distribution (bands, heat map, end-time histogram, sensitivity, all chats, time estimates), 4 release/patch relation (event study, year table, release list with evidence ids, cycles, prod/patch), 5 git (tiles, weekly commits with anchors, independent comparison, repos table, excluded tags), 6 tool/AI work if relevant, 7 validation table and limitations, annexes: every period, evidence for every event, manual decisions, data dictionary.
+Full report: 1 summary, 2 data/definitions/method (collection, windows, two clocks, tense model, version completion, masking), 3 distribution (bands, heat map, end-time histogram, sensitivity, all chats, time estimates, workload trend and phases), 4 release/patch relation (event study, year table, regression checks on event days and weekends, release list with evidence ids, cycles, prod/patch), 5 git (tiles, weekly commits with anchors, independent comparison, agreement of the clocks, repos table, excluded tags), 6 tool/AI work if relevant, 7 validation table and limitations, annexes: every period, evidence for every event, manual decisions, data dictionary.
+
+Model results (`model_results`, from `cenk-overtime:analyse`, section 8): each with its reading in the report's language and the same numbers, the method in one line, and what it does not show. A model result goes into the summary only with its interval and one clause on what it does not show.
 
 Writing: the court's language; sentences < 25 words; numbers with units; suffixes/grammar generated correctly for numbers; quotes must match the stored text exactly (assert it in code). Wording must follow the data: when git is present say "messages and commits", "last activity (message or commit)"; when an all-chats figure includes private masked messages, say so.
 
@@ -73,12 +75,13 @@ Write with openpyxl; the summary sheet uses formulas (COUNTIF/COUNTIFS on the da
 - The packaged tool rebuilds every table and report from 5_Raw_Data (+ git metadata) into a new folder next to the package; it never writes into the package. Build the delivered outputs by running the packaged tool itself on the packaged raw data.
 - Standard library only for the core; openpyxl and Playwright optional. Set `sys.dont_write_bytecode = True` and run with `-I -B`; delete `__pycache__` before hashing.
 - Reproduction check before delivery: copy the package, run the tool, compare every SQLite table (ignore the generation timestamp).
+- The tool also rebuilds `days`. `6_Method_and_Tool/models/` holds `models.py` and its `model-*` files from `work/queries/`; on the copy, `python models.py --db ../../4_Database/db.sqlite --out <new folder>` must give the same `model-*.json`. HOW_TO_USE.txt gives that command and the library versions in the JSON files (pandas, numpy, statsmodels, scipy); the core tool stays standard library only.
 - `sha256sum -c HASHES_SHA256.txt` must pass; compute the zip's SHA-256 and tell the person to deposit it the same day (email to self and lawyer, notary or timestamp service).
 - Sample queries: run every query in sample_queries.sql against the final DB; examples must return rows.
 
 ## 7. Audit and delivery
 
-- Before delivery, have an independent reviewer (fresh subagent) audit: credentials, quotes vs data, numbers vs DB, wording/overclaims, event dating, comparisons, labels, limitations. Fix everything found and rebuild.
+- Before delivery, have an independent reviewer (fresh subagent) audit: credentials, quotes vs data, numbers vs DB, wording/overclaims, event dating, comparisons, model readings (no causal words, intervals and limits stated), labels, limitations. Fix everything found and rebuild. Auditor: model `fable` (`opus` where Fable is not available), effort `xhigh`: it runs once, it is the last check before the lawyer, and nothing checks it afterwards.
 - The package is a draft for the person's lawyer. Tell the person not to file it, or send it to the employer or the court, before the lawyer has checked it.
 - Deliver into `for-lawyer/`: the zip, and next to it 1_Summary.pdf, 2_Report.pdf and 3_Data_Tables.xlsx, so the lawyer can read them without unzipping. Give the zip hash, and update `for-lawyer/README.md`.
 - Number versions; state that the new package replaces earlier ones, and move the earlier ones from `for-lawyer/` to `work/package/` unless the person wants them kept there. An earlier version with unmasked data leaves `for-lawyer/` at once: tell the person that the lawyers may have downloaded it already and must not file or pass it on, and not to share copies of it themselves.

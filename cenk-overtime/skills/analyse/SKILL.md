@@ -1,6 +1,6 @@
 ---
 name: "analyse"
-description: "Counts your out-of-hours work from the collected traces (evenings, nights, mornings and weekends) and estimates the hours, conservatively and continuously, with weekday and weekend apart, and shows how the overtime clusters around releases, patches and incidents. Use for: how many overtime hours did I work, calculate my unpaid overtime hours, count my weekend work, fazla mesai saatlerimi hesapla, kaç saat fazla mesai yaptım, calcolare le ore di straordinario, quante ore di straordinario ho fatto, Überstunden berechnen, wie viele Überstunden habe ich gemacht, calcular mis horas extra, cuántas horas extra hice, calculer mes heures supplémentaires, combien d'heures supplémentaires ai-je faites."
+description: "Counts your out-of-hours work from the collected traces (evenings, nights, mornings and weekends) and estimates the hours, conservatively and continuously, with weekday and weekend apart, and shows how the overtime clusters around releases, patches and incidents, with regression checks explained in plain words. Use for: how many overtime hours did I work, calculate my unpaid overtime hours, count my weekend work, fazla mesai saatlerimi hesapla, kaç saat fazla mesai yaptım, calcolare le ore di straordinario, quante ore di straordinario ho fatto, Überstunden berechnen, wie viele Überstunden habe ich gemacht, calcular mis horas extra, cuántas horas extra hice, calculer mes heures supplémentaires, combien d'heures supplémentaires ai-je faites."
 user-invocable: false
 ---
 
@@ -79,6 +79,7 @@ When the person asks for numbers, answer with a small table (weekday / weekend /
 - Year-stratified: 7-day pre-event windows vs other days per year, event days removed from both.
 - Period groups: release periods / incident-or-patch periods / other: count, mean messages, mean commits, conservative and continuous time, % evenings past midnight.
 - Phrase all of it as descriptive ("clusters around"), never causal.
+- Section 8 tests the same comparisons with regression models.
 
 ## 7. Git as an independent clock
 
@@ -88,8 +89,39 @@ When the person asks for numbers, answer with a small table (weekday / weekend /
 - Do not use other teams' repos' tags as anchors; their commits by the person still count as work.
 - Keyword tags on commit subjects: avoid ambiguous words (e.g. "agent" meaning a product component, not AI).
 
-## 8. Outputs for the package
+## 8. Regression checks
 
-SQLite tables: messages (with tier flags, categories, period ids, tags, versions, tickets, masked flag), periods (core) and periods_all (all chats) with counts, first/last activity, session/observed/upper minutes, events, event evidence, commits, tags, release branches, repo summary, manual decisions, dropped copies, validation checks, metadata. Views: monthly summary, event pre/post windows, prod/patch messages, chat summary, AI/tool records (Teams and commits kept apart). Keep every number in the reports computable from these tables.
+After sections 3 to 7, test the patterns with `scripts/models.py` in this skill's base directory. It needs pandas, numpy, statsmodels and scipy; the Tools section of `cenk-overtime:start` installs them.
 
-In a case folder from `cenk-overtime:start`: tables go into `master.sqlite`, charts and drafts into `work/`, and each artifact's query into `work/queries/<artifact>.sql`. Nothing goes into `for-lawyer/`: these outputs are not masked yet, and the lawyers see that folder at once. `cenk-overtime:court-package` delivers there.
+1. Run `scripts/schema.sql` of `cenk-overtime:start` on `master.sqlite` again: it adds the table `days` to an older database.
+2. Ask once whether the employer, role or team changed inside the window, and since when. Each period is a `phase`.
+3. Fill `days` with one row per calendar day of the window, from `traces`, `commits` and the events of sections 5 and 7, by the definitions of section 1: the activity day, counted traces only (out of hours on every clock, no scheduled sends), core tier. Leave, sick days and public holidays get `off`. Save the query as `work/queries/days.sql`.
+4. Run `python models.py --db "<case>/master.sqlite" --out "<case>/work/queries"`. Per model it writes `model-<name>.sql` (the query it read), `.csv` (the rows it used), `.txt` (the full output) and `.json` (estimates and readings), copies itself there, and fills `model_results`.
+
+| Model | Question | Method |
+|---|---|---|
+| `event-days` | More out-of-hours work on release, patch and incident days, and in the week before a release? | Daily counts; Poisson, or negative binomial when they vary more; weekday, month and year controls; errors clustered by week; all days, then days with any out-of-hours trace |
+| `weekends` | More weekend work near a release or a fix? | Risk ratio, and Fisher's exact test for small counts |
+| `clocks` | Do commits, chat and mail show the same end of the evening? | Spearman correlation of the last times on days with both; the median gap in minutes |
+| `trend` | Did the load change over the employment, or between its phases? | Weekly counts, working days as exposure, Newey-West errors over 4 weeks |
+
+Reading the results, in the report's language, with the script's numbers unchanged:
+- Start from each result's `reading` line.
+- Effect size: a rate ratio of 1.8 means 80% more out-of-hours traces than on comparable days; a risk ratio of 2.0, twice as often; a Spearman correlation of 0.7, that the two clocks rise and fall closely together (1 always together, 0 no link).
+- 95% CI: the range of values the data allow. When it includes 1 (0 for a correlation), say that the data cannot tell the difference from none.
+- p-value: how often a difference this large would come up by chance if there were none. It is not the chance that the finding is true; below 0.05 is the usual line.
+- With every result, say what it does not show:
+  - Association, not cause: releases come with other things (deadlines, staffing, a customer).
+  - Days without traces count as zero; work that left no trace stays out.
+  - Under 10 event days the reading says "indicative"; under 5 the script gives counts only.
+  - Busy days come in runs. The errors allow for days of the same week being alike; a Ljung-Box p below 0.05 (in `diagnostics`) means the runs last longer, and the intervals may be too narrow.
+  - Several tests at once: give their number (`tests` in each JSON file); about one in twenty passes 0.05 by chance.
+  - Event days found from out-of-hours messages always have some activity: lead with the active-days results and with events dated from git (`events_from`).
+  - The clocks model supports the timestamps, not the hours between them.
+- Never "caused", "because of" or "proves"; write "went with", "was higher on".
+
+## 9. Outputs for the package
+
+SQLite tables: messages (with tier flags, categories, period ids, tags, versions, tickets, masked flag), periods (core) and periods_all (all chats) with counts, first/last activity, session/observed/upper minutes, events, event evidence, commits, tags, release branches, repo summary, `days` and `model_results` (section 8), manual decisions, dropped copies, validation checks, metadata. Views: monthly summary, event pre/post windows, prod/patch messages, chat summary, AI/tool records (Teams and commits kept apart). Keep every number in the reports computable from these tables.
+
+In a case folder from `cenk-overtime:start`: tables go into `master.sqlite`, charts and drafts into `work/`, each artifact's query into `work/queries/<artifact>.sql`, and each model's files next to them (section 8). Nothing goes into `for-lawyer/`: these outputs are not masked yet, and the lawyers see that folder at once. `cenk-overtime:court-package` delivers there.

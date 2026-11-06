@@ -131,6 +131,17 @@ Showing both estimates lets the reader see a range instead of a single number th
 
 **Git as an independent clock:** keep only product version tags and release/patch branches; drop ticket, customer, build and bulk-migration tags; a lightweight tag carries the tagged commit's date, a release branch its last commit's date.
 
+**Test the patterns with standard models.** Counting shows a pattern; a regression model checks it against comparable days and says how sure the data can be. Four basic checks run on one row per day of the employment:
+
+| Check | Question | A result reads like (made up) |
+| --- | --- | --- |
+| Event days | More out-of-hours work on release, patch and incident days than on other days with the same weekday, month and year? | "Release days had 2.1 times as many out-of-hours traces (95% interval 1.6 to 2.8)" |
+| Weekends | More weekend work near a release? | "Weekend days before a release had work twice as often" |
+| Two clocks | Do commits and chat show the same end of the evening? | "Last commit and last message a median 20 minutes apart" |
+| Trend | Did the load grow over the employment, or after a change of employer or role? | "Out-of-hours traces per working day rose by 15% a year" |
+
+How to read them: the ratio is the size of the effect; the 95% interval is the range the data allow, and when it includes 1 the data cannot tell the difference from none; the p-value is how often a difference this large would appear by chance if there were none. They do not show a cause (releases come with deadlines and staffing changes), work that left no trace, or anything firm from a handful of event days. Busy days come in runs, so the intervals allow for days of the same week being alike. Several checks at once mean about one in twenty can pass by chance, so the report says how many were run. Event days found from out-of-hours messages always have some activity: the fairest figure compares them only with other days that had out-of-hours activity, and events dated from git, independent of the messages, weigh more. The code, its input rows and its output stay with the package, so the court expert can run it again and get the same numbers.
+
 ## Step 6 — Privacy, credentials and confidentiality
 
 - Scan every text for passwords, keys, tokens, internal IPs, database addresses and share links; keep literal passwords in a local file used only for masking, outside the case folder and never in the package, and delete it when the package is final; mask whole messages that contain a login; rescan every output and after every scope change.
@@ -174,6 +185,7 @@ Make it reproducible (the packaged tool rebuilds identical tables), remove cache
 | "The employee made up for it during the day." | In-hours activity not collected; the employer's attendance and leave records answer this |
 | "Commit dates were rewritten." | Author date used; differing commit dates flagged |
 | "The line counts are inflated." | Medians per commit given next to totals |
+| "It is a coincidence." | Regression checks against comparable days, with intervals, p-values and the number of checks run |
 
 Records worth requesting from the employer: Microsoft 365 or Slack audit logs and eDiscovery exports; VPN, single sign-on and remote-desktop logs; Git server push events, build and deployment logs, release calendar; issue tracker histories; on-call schedules, overtime approvals, leave and attendance records. Ask early: many logs are kept only for months.
 

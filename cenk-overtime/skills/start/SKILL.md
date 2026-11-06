@@ -13,9 +13,23 @@ The single entry point for an overtime case. This skill owns the choice of case,
 
 Where this skill and one of them differ, this skill wins: case folder, sharing, master database, evidence import, and git (section 6 replaces section 4 of `cenk-overtime:collect`).
 
+Where a skill sends work to subagents or a workflow, it names a model and an effort for each role: pass both with every agent. An agent given no effort runs at the session's level, which does not carry over to another model.
+
 In the first message, say that this is not legal advice: rules on what evidence may be collected and used differ by country and contract, and a lawyer should confirm them, especially access to employer systems after the job has ended. Also say that what this plugin builds is prepared with the help of AI and is for a lawyer to check before anything is filed or sent.
 
 This plugin works on the person's own computer: their files, Google Drive for desktop, git and a shell. If this session cannot reach the person's files (for example claude.ai chat, whose sandbox is not their computer), say so in the first message, point to Claude Code, and stop.
+
+## Tools
+
+At the start of every session, before section 0, run `scripts/check-tools.py` in this skill's base directory with Python 3 (`python3`, `python` or `py`, the first that runs). Give `--ocr-lang` the Tesseract codes of the language the person writes in and of their documents, plus English: `--ocr-lang tur,eng`. The script lists what this computer lacks and prints the install commands; it installs nothing.
+
+- Decide yourself what the case needs; the person does not choose tools. Reading and analysis tools before evidence is read; git and Git Bash when there is git history; LibreOffice and Playwright before `cenk-overtime:court-package`. Leave out what the case does not use.
+- Tell the person in plain words, once per round, that you will install some free programs from their official sources to read their documents and calculate the hours, and ask for one yes. Do not name the programs or libraries, or say which one does what, unless they ask.
+- After the yes, run the printed commands, run the check again, and say in one line that the computer is ready.
+- Language packs: when a document in another language turns up, or the person writes in one, say "I may download the Turkish language pack to read your documents properly" (naming that language), and wait for the yes.
+- If the person says no, go on without it and say what is left out: scanned pages unread, no frames from screen recordings, no regression checks.
+- Call a program by the path the check prints after `run as:` when it is not on PATH. Run the plugin's Python scripts with the Python the check names in its first line.
+- Details per system (official sources, admin prompts, PATH, managed Pythons): `references/tools.md`.
 
 ## 0. Which case
 
@@ -113,13 +127,15 @@ Create `master.sqlite` from `scripts/schema.sql` in this skill's base directory,
 |---|---|
 | `case_info` | intake answer: `key`, `value`, `note` (`job`, `contract_hours`, `contract_days`, `contract_zone`, `lived_zone`, `window_from`, `window_to` as `YYYY-MM-DD`, `drive_account`, `case_folder`...) |
 | `evidence_files` | file in `for-lawyer/raw/`: source, original path, case path, SHA-256, size, original modification time, date received, method, note (earlier case paths too) |
-| `traces` | normalized record (`cenk-overtime:collect`, section 6), with `file_id` pointing to the evidence file it came from |
+| `traces` | normalized record (`cenk-overtime:collect`, section 8), with `file_id` pointing to the evidence file it came from |
 | `repos` | repository source the script read: kind, remote host, commit counts (own and others) |
 | `commits` | own commit: hash, author, author time (with its offset, and in UTC), committer time, subject, files changed, lines added and deleted, binary files, merge flag |
 | `commit_files` | file changed in an own commit, with its lines added and deleted |
 | `tags`, `branches` | tag or branch with its date and commit |
 | `git_identities` | identity of the person found in a repository, with its commit count |
 | `decisions` | manual decision: what, why, who (sharing too, section 7) |
+| `days` | calendar day of the window: out-of-hours counts, the last time on each clock, events, phase, days off (`cenk-overtime:analyse`, section 8) |
+| `model_results` | result of a regression check, with its plain reading (written by `models.py` of `cenk-overtime:analyse`) |
 
 Views: `v_repo_summary`, `v_commits_by_day`, `v_commits_in_window` (uses `window_from` and `window_to` from `case_info`), `v_evidence_by_source`.
 

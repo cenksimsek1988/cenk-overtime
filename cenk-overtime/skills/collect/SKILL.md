@@ -42,8 +42,8 @@ Not legal advice. Before exporting anything from employer systems, tell the pers
 ## 3. Chat/email collection by time windows
 
 1. Generate windows covering every out-of-hours span in the employment window: each weekday evening from shift end to next shift start + 1 min (e.g. 18:00 -> 09:01) and each weekend from Friday shift end to Monday 09:01. Store them (`windows.json`).
-2. One search per window, filtered to the person as sender. Run windows in parallel batches (subagents can each take a block of windows). Save each window's raw result to its own file named by window.
-3. Log windows that returned nothing. After collection, re-query a random sample of empty windows and record the result ("6/6 still empty").
+2. One search per window, filtered to the person as sender. Run windows in parallel batches: subagents can each take a block of windows, with model `haiku` and effort `low`, because each window is one fixed search with nothing to judge, and steps 3 and 4 catch their slips. Save each window's raw result to its own file named by window, an empty result too.
+3. Check that every window in `windows.json` has its file. Log windows that returned nothing. After collection, re-query a random sample of empty windows and record the result ("6/6 still empty").
 4. Merge: dedupe by message id. Detect cross-contaminated copies: the same id saved in a file of another window, sometimes with a different chatId. Keep the copy from the window that contains its timestamp; log the dropped ones (`foreign_copies.json`).
 5. Keep the collection notes: who ran the queries, the tool used, dates, window count, empty count, re-check results.
 
@@ -73,7 +73,28 @@ git -C REPO for-each-ref refs/heads refs/remotes --format='%(refname)%1f%(refnam
 - Do not export colleagues' emails: keep only the person's identities plus an aggregate count of others; blank tagger emails that are not the person's.
 - Output folder on the person's machine: tell them its path; you may not be able to delete it.
 
-## 5. WhatsApp exports
+## 5. Reading files
+
+Evidence in `for-lawyer/raw/` is read, never changed: every derived file goes to `work/`. Use the programs and libraries from the Tools section of `cenk-overtime:start`, never a hand-written unzip and XML parse of .docx or .xlsx, or a PDF parser of your own. Run Python with the interpreter the tools check named.
+
+- PDF text: PyMuPDF, `doc = pymupdf.open(path)`, then `page.get_text()` per page; `doc.page_count`; `doc.metadata` has the creation and change dates, by the producer's clock.
+- PDF tables (payslips, timesheets): pdfplumber, `page.extract_tables()`; check the totals against the page text.
+- Scanned PDF, a page whose `get_text()` is empty: `page.get_pixmap(dpi=300).save("work/ocr/p001.png")`, then `tesseract work/ocr/p001.png work/ocr/p001 -l tur+eng`. OCR text can be wrong: check every quote against the page image. Record which pages were read by OCR.
+- .docx: python-docx, `Document(path)`: `.paragraphs`, `.tables`, `.core_properties` (author, created, modified). Headers, footers and text boxes are separate parts.
+- .xlsx: openpyxl, `load_workbook(path, read_only=True, data_only=True)` for the values as last saved; load again without `data_only` for the formulas. A file saved by a program that does not calculate has no values (`None`): read the formulas. pandas `read_excel` for plain tables.
+- Old .doc and .xls: convert a copy with LibreOffice, `soffice --headless --convert-to docx --outdir work/convert <file>` (`xlsx` for .xls).
+- CSV: pandas `read_csv(path, dtype=str)`; encoding `utf-8-sig`, else the exporting system's (`cp1254` for Turkish Windows); `sep=None, engine="python"` when the separator is `;`.
+- Mail: MBOX (also Google Takeout) with Python's `mailbox.mbox(path)`, headers only: `Date`, `From`, `To`, `Message-ID`, `X-Gmail-Labels` (Takeout marks sent mail with `Sent`). EML with `email.message_from_binary_file(f, policy=email.policy.default)`.
+- Images and screenshots: Pillow, `Image.open(path).getexif().get(36867)`, the time taken; chat apps often strip it. Text: Tesseract, as for scans.
+- Screen recordings and videos: `ffprobe -v error -show_entries format=duration:format_tags=creation_time -of json <file>`. Frames every 5 s: `ffmpeg -i <file> -vf fps=1/5 work/frames/%05d.png`; at scene changes: `ffmpeg -i <file> -vf "select='gt(scene,0.3)'" -fps_mode vfr work/frames/%05d.png`. Then Tesseract, or look at the frames. A frame's clock time is creation_time plus its offset only when the file has a creation_time: say which.
+- SQLite files (app backups): open a copy in `work/`, never the file in `raw/`: opening one can write `-wal` and `-shm` files beside it.
+- WhatsApp and other chat exports: section 7.
+
+## 6. Many files at once
+
+With more than about 10 evidence files or 100 MB, or many formats at once (mail archive, chats, PDFs, office files, recordings), read `references/readers-and-checkers.md` before reading anything: it splits the work over subagents, with a model and an effort for each role, after the person's yes.
+
+## 7. WhatsApp exports
 
 Line formats vary; detect per file:
 
@@ -89,7 +110,7 @@ LINE = re.compile(r'^\[?(\d{1,2})[./-](\d{1,2})[./-](\d{2,4}),?\s+(\d{1,2}):(\d{
 - Times are the phone's local time: convert with the real time zone of that date (DST), then to the contract zone.
 - Keep only the person's own messages (their display name as it appears in that export, which can differ per chat).
 
-## 6. Normalize into one table
+## 8. Normalize into one table
 
 One record per trace:
 
@@ -103,7 +124,7 @@ One record per trace:
 - Exclude self-notes chats (e.g. Teams `48:notes`), bots and drafts; list them as excluded.
 - Keep the full unmasked table only in the private workspace (`master.sqlite` and `work/` of the case folder), never in `for-lawyer/`; masking happens before anything is shared (see `cenk-overtime:court-package`).
 
-## 7. Hand-off checklist
+## 9. Hand-off checklist
 
 - [ ] Raw results per window/source saved, originals hashed
 - [ ] Collection notes: windows, empty windows, re-checks, dropped copies, tools, dates
