@@ -1,6 +1,6 @@
 {
   "name": "cenk-overtime",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "description": "Helps employees who worked unpaid overtime or extra shifts prepare their claim for a lawyer: a case folder in your own Google Drive, your out-of-hours work counted from your own records (email, chat, calls, calendar, git), weekday and weekend apart, and an evidence report for your lawyer to check. Runs in Claude Code on your computer. Not legal advice.",
   "author": { "name": "Cenk Simsek" },
   "homepage": "https://github.com/cenksimsek1988/cenk-overtime",

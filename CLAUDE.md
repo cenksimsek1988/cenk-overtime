@@ -9,7 +9,7 @@ Cenk's Claude Code plugin for employees who claim unpaid overtime. Public: githu
 
 ## Layout
 
-- `.claude-plugin/marketplace.json`: one-plugin marketplace, source `./cenk-overtime`.
+- `.claude-plugin/marketplace.json`: one-plugin marketplace, source `./cenk-overtime`, for a clone and Cenk's own install. Users install from the public catalog `cenk` (repository `cenksimsek1988/claude-plugins`) as `cenk-overtime@cenk`; its entry has no version, so a release needs no change there (6 Nov 2026).
 - `cenk-overtime/skills/`: `start` (intake, case folder, database, git script), `collect`, `analyse`, `court-package`. The last three have `user-invocable: false`; `start` runs them. Cross-references use `cenk-overtime:<skill>`.
 - Skill descriptions: one sentence, then "Use for:" with trigger phrases in English, Turkish, Italian, German, Spanish and French; quoted; at most 1024 characters, no angle brackets (claude.ai's limits).
 - `cenk-overtime/README.md`: the plugin's own README, which Anthropic's directory shows as the listing's description. It lists what the plugin runs, reads and sends: update it with every skill change that touches those.

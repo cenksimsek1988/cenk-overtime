@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.2 - 2026-11-06
+
+- README: install from Cenk Simsek's plugin catalog `cenk` (`https://github.com/cenksimsek1988/claude-plugins.git`) as `cenk-overtime@cenk`. This repository's own catalog `cenk-overtime` stays, for a clone and for local work; install one way only. The skills are unchanged from 0.4.1.
+
 ## 0.4.1 - 2026-11-06
 
 - The plugin folder carries the MIT license text, so every install and the `.plugin` file include it; before, only the repository root had it. The skills are unchanged from 0.4.0.

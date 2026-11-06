@@ -27,22 +27,26 @@ Start with `/cenk-overtime:start`, or just say "I want to claim my unpaid overti
 
 ## Install in Claude Code
 
+From Cenk Simsek's plugin catalog `cenk` ([claude-plugins](https://github.com/cenksimsek1988/claude-plugins)):
+
 ```bash
-claude plugin marketplace add https://github.com/cenksimsek1988/cenk-overtime.git
+claude plugin marketplace add https://github.com/cenksimsek1988/claude-plugins.git
 ```
 ```bash
-claude plugin install cenk-overtime@cenk-overtime
+claude plugin install cenk-overtime@cenk
 ```
 
-Use the `https://` address as written: the short form `cenksimsek1988/cenk-overtime` makes Claude Code clone over SSH, which fails on computers that have never connected to GitHub that way. Then start a new Claude Code session and type `/cenk-overtime:start`.
+Use the `https://` address as written: the short form `cenksimsek1988/claude-plugins` makes Claude Code clone over SSH, which fails on computers that have never connected to GitHub that way. Then start a new Claude Code session and type `/cenk-overtime:start`. In a session, `/plugin marketplace add` and `/plugin install` take the same words.
 
 To get a newer version later:
 ```bash
-claude plugin marketplace update cenk-overtime
+claude plugin marketplace update cenk
 ```
 ```bash
-claude plugin update cenk-overtime@cenk-overtime
+claude plugin update cenk-overtime@cenk
 ```
+
+From this repository alone (its own catalog, `cenk-overtime`), or from the folder of a clone you change yourself: `claude plugin marketplace add https://github.com/cenksimsek1988/cenk-overtime.git` (or the folder), then `claude plugin install cenk-overtime@cenk-overtime`. A folder install loads your edits at the next session. Install one way only: to switch, first `claude plugin uninstall` the other copy.
 
 ## Install in claude.ai or the Claude desktop app
 
