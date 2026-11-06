@@ -14,6 +14,7 @@ Cenk's Claude Code plugin for employees who claim unpaid overtime. Public: githu
 - Skill descriptions: one sentence, then "Use for:" with trigger phrases in English, Turkish, Italian, German, Spanish and French; quoted; at most 1024 characters, no angle brackets (claude.ai's limits).
 - `cenk-overtime/README.md`: the plugin's own README, which Anthropic's directory shows as the listing's description. It lists what the plugin runs, reads and sends: update it with every skill change that touches those.
 - `PRIVACY.md` and `SECURITY.md` at the root: the directory's privacy policy link and the route for vulnerability reports.
+- `LICENSE` is at the root and in `cenk-overtime/`, because installs and the `.plugin` file get only the plugin folder: keep the two copies identical (`cmp LICENSE cenk-overtime/LICENSE`).
 
 ## Directory
 

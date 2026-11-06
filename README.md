@@ -72,6 +72,7 @@ docs/guide.md                      the method in plain prose
 .claude-plugin/marketplace.json    lets Claude Code install from this repository
 cenk-overtime/                     the plugin
 cenk-overtime/README.md            the plugin's own description, example prompts, what it runs and sends
+cenk-overtime/LICENSE              the same MIT license, so it travels with every install
 tests/test-git-history.sh          checks for the git history script (bash tests/test-git-history.sh)
 ```
 

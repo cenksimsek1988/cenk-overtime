@@ -69,4 +69,4 @@ Or type `/cenk-overtime:start`. It runs `collect`, `analyse` and `court-package`
 
 ## License
 
-MIT: https://github.com/cenksimsek1988/cenk-overtime/blob/main/LICENSE
+MIT, see LICENSE in this folder: https://github.com/cenksimsek1988/cenk-overtime/blob/main/cenk-overtime/LICENSE

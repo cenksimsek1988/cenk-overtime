@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.1 - 2026-11-06
+
+- The plugin folder carries the MIT license text, so every install and the `.plugin` file include it; before, only the repository root had it. The skills are unchanged from 0.4.0.
+
 ## 0.4.0 - 2026-11-06
 
 - Prepared for Anthropic's plugin directory. The plugin folder has its own README.md, the listing's description: what it does and does not do, example prompts, what it runs, reads and sends. The repository has PRIVACY.md and SECURITY.md.
