@@ -22,7 +22,7 @@ Cenk's Claude Code plugin for employees who claim unpaid overtime. Public: githu
 
 1. Raise `version` in `cenk-overtime/.claude-plugin/plugin.json`; add a CHANGELOG entry.
 2. Run the checks, commit with `/cenk-workbench:commit`, push.
-3. Zip the contents of `cenk-overtime/` (`.claude-plugin/plugin.json` at the zip root) as `cenk-overtime.plugin`; `gh release create vX.Y.Z cenk-overtime.plugin --latest`.
+3. Pack the release commit's `cenk-overtime/` (`.claude-plugin/plugin.json` at the zip root) with `git -c core.autocrlf=false archive --format=zip -o cenk-overtime.plugin <commit>:cenk-overtime`, check that no file in the zip contains a CR, then `gh release create vX.Y.Z cenk-overtime.plugin --latest`.
 4. `claude plugin marketplace update cenk-overtime`, then `claude plugin update cenk-overtime@cenk-overtime` (Cenk's install uses this folder as a directory marketplace).
 
 ## Quirks
@@ -31,6 +31,7 @@ Cenk's Claude Code plugin for employees who claim unpaid overtime. Public: githu
 - `user-invocable` is not among claude.ai's allowed front-matter keys, so the `.plugin` upload may reject it.
 - Google Drive for desktop ignores the read-only flag; the skills rely on SHA-256 hashes.
 - `sha256sum` on Windows writes ` *` before each path.
+- Archiving only the `cenk-overtime/` subtree leaves the root `.gitattributes` behind, so with `core.autocrlf=true` (as on Cenk's machine) every file in the zip comes out CRLF and `git-history.sh` breaks under bash. Hence `core.autocrlf=false` in release step 3.
 - The repository's git identity is set locally; the machine's global identity belongs to a former employer and must not be used.
 - The test's two fake credential URLs carry `secret-scan: allow`.
 
