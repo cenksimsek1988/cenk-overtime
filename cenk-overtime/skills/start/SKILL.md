@@ -1,6 +1,6 @@
 ---
 name: "start"
-description: "Starts an unpaid overtime or extra-shift claim, or picks up one you started before, and guides it to a court-ready report: asks about your job, contract hours and the evidence you already have, creates a case folder in your own Google Drive to share with your lawyer, brings your evidence in with hashes, reads your git history, then runs cenk-overtime:collect, :analyse and :court-package in order. Use for: I worked unpaid overtime, my extra shifts were never paid, claim overtime from my employer, prepare my overtime case for my lawyer, fazla mesai hesapla, fazla mesai davası açacağım, fazla mesai alacağımı nasıl kanıtlarım, işçi alacağı davası, straordinari non pagati, causa di lavoro per gli straordinari, unbezahlte Überstunden, Überstunden nachweisen, Überstundenvergütung einklagen, horas extra no pagadas, reclamar horas extra, heures supplémentaires non payées, prouver mes heures supplémentaires."
+description: "Starts an unpaid overtime or extra-shift claim, or picks up one you started before, and guides it to an evidence report for your lawyer: asks about your job, contract hours and the evidence you already have, creates a case folder in your own Google Drive to share with your lawyer, brings your evidence in with hashes, reads your git history, then runs cenk-overtime:collect, :analyse and :court-package in order. Use for: I worked unpaid overtime, my extra shifts were never paid, claim overtime from my employer, prepare my overtime case for my lawyer, fazla mesai hesapla, fazla mesai davası açacağım, fazla mesai alacağımı nasıl kanıtlarım, işçi alacağı davası, straordinari non pagati, causa di lavoro per gli straordinari, unbezahlte Überstunden, Überstunden nachweisen, Überstundenvergütung einklagen, horas extra no pagadas, reclamar horas extra, heures supplémentaires non payées, prouver mes heures supplémentaires."
 ---
 
 # Overtime evidence: start here
@@ -13,7 +13,9 @@ The single entry point for an overtime case. This skill owns the choice of case,
 
 Where this skill and one of them differ, this skill wins: case folder, sharing, master database, evidence import, and git (section 6 replaces section 4 of `cenk-overtime:collect`).
 
-In the first message, say that this is not legal advice: rules on what evidence may be collected and used differ by country and contract, and a lawyer should confirm them, especially access to employer systems after the job has ended.
+In the first message, say that this is not legal advice: rules on what evidence may be collected and used differ by country and contract, and a lawyer should confirm them, especially access to employer systems after the job has ended. Also say that what this plugin builds is prepared with the help of AI and is for a lawyer to check before anything is filed or sent.
+
+This plugin works on the person's own computer: their files, Google Drive for desktop, git and a shell. If this session cannot reach the person's files (for example claude.ai chat, whose sandbox is not their computer), say so in the first message, point to Claude Code, and stop.
 
 ## 0. Which case
 
@@ -81,6 +83,7 @@ Create this layout and write `README.md` in it: what each folder holds, where ea
 
 Everything in this folder goes to Google's servers and to the lawyers. These stay on the computer only:
 - git clones, in `~/overtime-clones/<case>/` (section 6): they hold the employer's source code;
+- the list of passwords found in messages, `secrets.json`, next to the clones (`cenk-overtime:court-package`, section 1);
 - the git script's temporary files, in the system temp folder.
 
 Because the folder syncs:

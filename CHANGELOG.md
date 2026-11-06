@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.4.0 - 2026-11-06
+
+- Prepared for Anthropic's plugin directory. The plugin folder has its own README.md, the listing's description: what it does and does not do, example prompts, what it runs, reads and sends. The repository has PRIVACY.md and SECURITY.md.
+- `court-package` puts an AI notice on the summary, the full report and README.txt: "Prepared with the help of AI from the employee's own records. To be checked by a lawyer before it is filed or relied on." The package is a draft until the lawyer has checked it.
+- The password list used for masking (`secrets.json`) stays next to the git clones, outside the synced case folder, and is deleted when the package is final.
+- `court-package` writes in the court's language; Turkish is no longer named as a default.
+- `start` says in its first message that what it builds is for a lawyer to check, and stops with a pointer to Claude Code when the session cannot reach the person's files, as in claude.ai chat.
+- Descriptions say "an evidence report for your lawyer" instead of "court-ready report". The root README lists what the plugin runs and sends instead of "no network calls of its own".
+
 ## 0.3.0 - 2026-11-06
 
 - `start` now begins by listing the cases already in `My Drive/overtime-cases/` of every Google Drive account on the computer and asking whether to continue one of them or start a new one. For an existing case it asks only the intake questions that the case's `case_info` and README leave open, then goes on from the first step that is not done, so a case can be picked up in a later session.

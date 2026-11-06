@@ -1,8 +1,8 @@
 # cenk-overtime
 
-For employees who worked unpaid overtime or extra shifts and want to claim it from their employer, alone or with a lawyer.
+For employees who worked unpaid overtime or extra shifts and want to claim it from their employer.
 
-What you get: a case folder in your own Google Drive to share with your lawyer, your overtime hours counted from your own work traces (sent email, work chat, phone, calendar, git), weekday and weekend apart, and a court-ready report.
+What you get: a case folder in your own Google Drive to share with your lawyer, your overtime hours counted from your own work traces (sent email, work chat, phone, calendar, git), weekday and weekend apart, and an evidence report for your lawyer to check before anything is filed. The report says that it was prepared with the help of AI.
 
 Not legal advice. What you may collect and use depends on your country and contract, so ask a lawyer, especially before accessing employer systems after your job has ended.
 
@@ -10,7 +10,7 @@ The method itself, in plain prose for employees, lawyers and court experts, is i
 
 ## Skills
 
-Start with `/cenk-overtime:start`, or just say "I want to claim my unpaid overtime". It runs the other three when their turn comes, so only `start` appears in the `/` menu.
+Start with `/cenk-overtime:start`, or just say "I want to claim my unpaid overtime". It runs the other three when their turn comes, so only `start` appears in the `/` menu. More example prompts are in [cenk-overtime/README.md](cenk-overtime/README.md).
 
 | Skill | What it does |
 |---|---|
@@ -21,7 +21,7 @@ Start with `/cenk-overtime:start`, or just say "I want to claim my unpaid overti
 
 ## What you need
 
-- Claude Code, or the Claude desktop app. It does not work on claude.ai in a browser: it needs your files, git and a shell on your computer.
+- Claude Code: the terminal, an IDE extension, or the Code tab of the Claude desktop app. It does not work in claude.ai chat: it needs your files, git and a shell on your computer. Not tested in Cowork.
 - Google Drive for desktop, signed in with your own Google account, never your employer's.
 - For git history: git, bash (Git Bash on Windows), and Python 3 or the `sqlite3` tool.
 
@@ -50,7 +50,14 @@ Each [GitHub release](https://github.com/cenksimsek1988/cenk-overtime/releases) 
 
 ## Your data
 
-The plugin has no hooks, servers or network calls of its own. Your case folder stays in your own Google Drive and on your computer; Claude reads what you work on with it, as with anything else. Clones of your employer's repositories stay on your computer, in `overtime-clones` in your home folder, and are deleted after the git history is read.
+The plugin has no hooks, servers or tracking, and sends nothing to its author. Your case folder stays in your own Google Drive and on your computer; Claude reads what you work on with it, as with anything else.
+
+- Network: it clones the employer repositories you name, with your own git login, into `overtime-clones` in your home folder, and deletes each clone after the git history is read.
+- Your case folder syncs to Google Drive through Google Drive for desktop.
+- Connectors you already have (Microsoft 365, Gmail, Google Drive) are used with your sign-in, to search your sent messages or to share the case folder.
+- Nothing is shared without your yes for each email address.
+
+The full list of what it runs, reads and sends is in [cenk-overtime/README.md](cenk-overtime/README.md); [PRIVACY.md](PRIVACY.md) says who sees your data and how to delete it. Report security problems privately as [SECURITY.md](SECURITY.md) says.
 
 ## Files here
 
@@ -58,10 +65,13 @@ The plugin has no hooks, servers or network calls of its own. Your case folder s
 README.md                          this file
 CHANGELOG.md                       what changed in each version
 LICENSE                            MIT
+PRIVACY.md                         what data the plugin reads, stores and shares
+SECURITY.md                        how to report a vulnerability
 CLAUDE.md                          notes for Claude when working on this repository
 docs/guide.md                      the method in plain prose
 .claude-plugin/marketplace.json    lets Claude Code install from this repository
 cenk-overtime/                     the plugin
+cenk-overtime/README.md            the plugin's own description, example prompts, what it runs and sends
 tests/test-git-history.sh          checks for the git history script (bash tests/test-git-history.sh)
 ```
 

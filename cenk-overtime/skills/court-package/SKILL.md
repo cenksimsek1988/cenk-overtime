@@ -1,10 +1,10 @@
 ---
 name: "court-package"
-description: "Builds a court-ready evidence package from the analysis: passwords and private life masked, a short summary PDF for your lawyer, a full report, data and a rebuild tool for the court expert, a spreadsheet with live formulas, SHA-256 hashes and an independent audit. Use for: evidence package for my lawyer, prepare my overtime evidence for court, report for the labour court, mahkemeye sunulacak delil paketi, avukatım için fazla mesai raporu, bilirkişi için rapor, pacchetto di prove per l'avvocato, prove per la causa di lavoro, Beweismappe für das Arbeitsgericht, Unterlagen für die Überstundenklage, pruebas para el juicio laboral, informe para mi abogado, dossier de preuves pour les prud'hommes, rapport pour mon avocat."
+description: "Builds an evidence package from the analysis, for your lawyer to check before anything goes to court: passwords and private life masked, a short summary PDF for your lawyer, a full report, data and a rebuild tool for the court expert, a spreadsheet with live formulas, SHA-256 hashes and an independent audit. Use for: evidence package for my lawyer, prepare my overtime evidence for court, report for the labour court, mahkemeye sunulacak delil paketi, avukatım için fazla mesai raporu, bilirkişi için rapor, pacchetto di prove per l'avvocato, prove per la causa di lavoro, Beweismappe für das Arbeitsgericht, Unterlagen für die Überstundenklage, pruebas para el juicio laboral, informe para mi abogado, dossier de preuves pour les prud'hommes, rapport pour mon avocat."
 user-invocable: false
 ---
 
-# Court-ready evidence package
+# Evidence package for the lawyer and the court
 
 Use after `cenk-overtime:collect` and `cenk-overtime:analyse`. Readers: the lawyer (summary), the court expert (full report, data, tool), the judge (summary). Every number must be traceable to record ids the employer can verify, and the whole package must be rebuildable from its own raw data.
 
@@ -18,7 +18,7 @@ Mask in every text field:
 - a whole message that is one random-looking token (>= 12 chars, >= 3 character classes, >= 3 letter/digit switches, not an identifier/path/version)
 - JWTs, PEM private keys, share links to private pages
 - internal IPv4 (not 127.x, not version numbers) with port/SID, database endpoints (host:1433/1521/3306/5432/27017... or host:SID)
-- literal passwords found by review: kept in a local `secrets.json` used only at build time, never copied into the package or the tool
+- literal passwords found by review: kept in `secrets.json` on the computer, next to the git clones (`~/overtime-clones/<case>/`), never in the case folder, which syncs and is shared; used only at build time, never copied into the package or the tool; deleted when the package is final (section 7)
 - a message containing a login (user + password) is masked whole by id with a stated reason
 
 Rescan after every scope change (new chats, git) and scan every output format, not just inputs: PDF text (pdftotext), xlsx cells, every SQLite table, CSV, JSONL, git metadata. Also run a shape scan for password-like tokens (upper+lower+digit+symbol) and a context scan (password-like tokens within 10 min of a password discussion). Print shapes, never the secrets.
@@ -46,16 +46,18 @@ Customer names stay out of the narrative PDFs (scan for the known list); the pac
 5_Raw_Data/              masked records (jsonl), collection_notes.json, git_metadata.json
 6_Method_and_Tool/       tool/ (scripts + mask list), HOW_TO_USE.txt
 HASHES_SHA256.txt
-README.txt               contents, confidentiality, verification, hash deposit
+README.txt               AI notice (section 4), contents, confidentiality, verification, hash deposit
 ```
 
 ## 4. Reports (HTML -> PDF with Playwright/Chromium)
+
+AI notice, in the report's language, under the title of `1_Summary.pdf` and `2_Report.pdf` and at the top of `README.txt`: "Prepared with the help of AI from the employee's own records. To be checked by a lawyer before it is filed or relied on." Keep it in every version delivered to the person and the lawyer.
 
 Summary: title with period and person; data source and collection date; raw-data hash; 6 key-number tiles (each with the all-chats figure in brackets); findings bullets, each with one quoted example and its date/time and a reference to the report section; a box "What this report does not show" (no pay calculation, estimates only, traceless work invisible, content not judged message by message); weekly chart; core vs all-chats table; time-estimate table (weekday/weekend/total); event-day chart and table; period-group table.
 
 Full report: 1 summary, 2 data/definitions/method (collection, windows, two clocks, tense model, version completion, masking), 3 distribution (bands, heat map, end-time histogram, sensitivity, all chats, time estimates), 4 release/patch relation (event study, year table, release list with evidence ids, cycles, prod/patch), 5 git (tiles, weekly commits with anchors, independent comparison, repos table, excluded tags), 6 tool/AI work if relevant, 7 validation table and limitations, annexes: every period, evidence for every event, manual decisions, data dictionary.
 
-Writing: Turkish or the court's language; sentences < 25 words; numbers with units; suffixes/grammar generated correctly for numbers; quotes must match the stored text exactly (assert it in code). Wording must follow the data: when git is present say "messages and commits", "last activity (message or commit)"; when an all-chats figure includes private masked messages, say so.
+Writing: the court's language; sentences < 25 words; numbers with units; suffixes/grammar generated correctly for numbers; quotes must match the stored text exactly (assert it in code). Wording must follow the data: when git is present say "messages and commits", "last activity (message or commit)"; when an all-chats figure includes private masked messages, say so.
 
 Charts: hand-drawn SVG; grey data with one accent; values on bars; reference line labelled on the chart; no overlapping labels (render and look at every page before delivery).
 
@@ -74,6 +76,8 @@ Write with openpyxl; the summary sheet uses formulas (COUNTIF/COUNTIFS on the da
 ## 7. Audit and delivery
 
 - Before delivery, have an independent reviewer (fresh subagent) audit: credentials, quotes vs data, numbers vs DB, wording/overclaims, event dating, comparisons, labels, limitations. Fix everything found and rebuild.
+- The package is a draft for the person's lawyer. Tell the person not to file it, or send it to the employer or the court, before the lawyer has checked it.
 - Deliver the zip and the summary PDF; give the zip hash. Number versions; state that the new package replaces earlier ones; if earlier deliverables contained unmasked data, tell the person not to share them.
 - Clean the workspace of scratch copies with unmasked data (review chunks, scan outputs, old builds); keep only what is needed to rebuild.
+- When the person says the package is final, delete `secrets.json` (section 1) and say so; a later rebuild needs the password review again.
 - Final message to the person: what changed, key numbers in a small table, judgment calls they should know about (masked borderline items), and one next step.

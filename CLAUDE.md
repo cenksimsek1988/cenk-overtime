@@ -12,6 +12,15 @@ Cenk's Claude Code plugin for employees who claim unpaid overtime. Public: githu
 - `.claude-plugin/marketplace.json`: one-plugin marketplace, source `./cenk-overtime`.
 - `cenk-overtime/skills/`: `start` (intake, case folder, database, git script), `collect`, `analyse`, `court-package`. The last three have `user-invocable: false`; `start` runs them. Cross-references use `cenk-overtime:<skill>`.
 - Skill descriptions: one sentence, then "Use for:" with trigger phrases in English, Turkish, Italian, German, Spanish and French; quoted; at most 1024 characters, no angle brackets (claude.ai's limits).
+- `cenk-overtime/README.md`: the plugin's own README, which Anthropic's directory shows as the listing's description. It lists what the plugin runs, reads and sends: update it with every skill change that touches those.
+- `PRIVACY.md` and `SECURITY.md` at the root: the directory's privacy policy link and the route for vulnerability reports.
+
+## Directory
+
+- Not submitted yet. Route: claude.ai/directory/manage > Submit new > Plugin bundle; repository `cenksimsek1988/cenk-overtime`, plugin path `cenk-overtime`.
+- Validation blocks a plugin folder without a README of 40 or more words outside code blocks.
+- Legal is a high-risk area in Anthropic's usage policy: keep the AI notice and the lawyer's check in `court-package`, and "Not legal advice" in the descriptions.
+- `SECURITY.md` links GitHub's private vulnerability reporting, which must be turned on in the repository settings.
 
 ## Check
 
@@ -28,7 +37,7 @@ Cenk's Claude Code plugin for employees who claim unpaid overtime. Public: githu
 ## Quirks
 
 - Install from the HTTPS address; the `owner/repo` form clones over SSH and fails without a GitHub host key.
-- `user-invocable` is not among claude.ai's allowed front-matter keys, so the `.plugin` upload may reject it.
+- `user-invocable` is not among the Agent Skills front-matter keys: a single-skill upload on claude.ai (Customize > Skills) fails on it. The directory does not check it, and plugins listed in claude-plugins-official (project-artifact, telegram, discord) carry it.
 - Google Drive for desktop ignores the read-only flag; the skills rely on SHA-256 hashes.
 - `sha256sum` on Windows writes ` *` before each path.
 - Archiving only the `cenk-overtime/` subtree leaves the root `.gitattributes` behind, so with `core.autocrlf=true` (as on Cenk's machine) every file in the zip comes out CRLF and `git-history.sh` breaks under bash. Hence `core.autocrlf=false` in release step 3.
@@ -37,6 +46,5 @@ Cenk's Claude Code plugin for employees who claim unpaid overtime. Public: githu
 
 ## Open
 
-- The `.plugin` upload to claude.ai is untested for 0.2.x.
+- The `.plugin` upload to claude.ai is untested since 0.2.0; Cowork is untested.
 - Not tested: the `sqlite3` command-line path; macOS and Linux `awk`.
-- No submission to Anthropic's official plugin directory yet.

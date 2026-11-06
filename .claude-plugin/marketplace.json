@@ -6,7 +6,7 @@
     {
       "name": "cenk-overtime",
       "source": "./cenk-overtime",
-      "description": "For employees who worked unpaid overtime or extra shifts and want to claim it from their employer, alone or with a lawyer: a case folder in your own Google Drive to share with your lawyer, your overtime hours counted from your own work traces (weekday and weekend apart), and a court-ready report. Not legal advice."
+      "description": "Helps employees who worked unpaid overtime or extra shifts prepare their claim for a lawyer: a case folder in your own Google Drive, your out-of-hours work counted from your own records (email, chat, calls, calendar, git), weekday and weekend apart, and an evidence report for your lawyer to check. Runs in Claude Code on your computer. Not legal advice."
     }
   ]
 }
