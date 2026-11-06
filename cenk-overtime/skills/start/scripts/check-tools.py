@@ -72,6 +72,8 @@ MODULES = [
     ("scipy", "scipy", "analysis", "correlations and exact tests"),
     ("playwright", "playwright", "package", "report HTML to PDF"),
 ]
+# Windows has no time zone database of its own: zoneinfo reads it from this package.
+WINDOWS_MODULES = [("tzdata", "tzdata", "analysis", "time zone rules for the contract zone")]
 
 
 def this_os():
@@ -172,9 +174,9 @@ def check_programs(os_name):
     return items
 
 
-def check_modules():
+def check_modules(os_name):
     items = []
-    for mod, dist, stage, use in MODULES:
+    for mod, dist, stage, use in MODULES + (WINDOWS_MODULES if os_name == "windows" else []):
         found = module_found(mod)
         items.append({"kind": "module", "name": dist, "stage": stage, "use": use, "import": mod,
                       "version": module_version(dist) if found else "", "status": "found" if found else "missing"})
@@ -274,7 +276,7 @@ def python_commands(os_name, modules, chromium, managed):
 def report(args):
     os_name = args.os or this_os()
     programs = check_programs(os_name)
-    modules = check_modules()
+    modules = check_modules(os_name)
     chromium = check_chromium(os_name, modules)
     tesseract = next(p for p in programs if p["name"] == "tesseract")
     ocr = check_ocr(args.ocr_lang, tesseract["path"])

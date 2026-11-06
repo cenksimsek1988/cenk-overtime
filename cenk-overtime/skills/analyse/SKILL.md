@@ -35,6 +35,8 @@ A trace counts only if both clocks (when two exist) are out of hours.
 - Last-activity time per evening: median; evenings ending after 20:00, 22:00, midnight. Day x hour heat map.
 - Sensitivity: recount with shift end 18:15 / 18:30 (late evenings unchanged).
 - With git: periods with commits, periods with both, git-only periods; out-of-hours commits; median files and +/- lines per commit next to totals (a few huge commits inflate totals: report the top-5 share).
+- Count git work as events, not hashes: a rebased, cherry-picked or amended copy carries the same author time. First give every copy reworded in the same author second the subject of the row committed first (`committer_utc`), then count one event per author time in UTC to the minute and subject. Report merges apart from the other commits.
+- Times come from `author_utc` in the contract zone, never from the offset the author's computer had.
 
 ## 4. Working-time estimates
 
@@ -52,7 +54,7 @@ def upper_minutes(kind, day, first, last):
     """Continuous: evening = shift end -> last trace; morning = first trace -> shift start; weekend = first -> last."""
 ```
 
-Also keep observed span (first -> last trace).
+Also keep observed span (first -> last trace). Hours come from these sessions and days; a count of commits never becomes hours.
 
 Present separately for **weekday (evenings + mornings), weekend, total**:
 - per worked day (average over periods with a trace),
@@ -95,7 +97,7 @@ After sections 3 to 7, test the patterns with `scripts/models.py` in this skill'
 
 1. Run `scripts/schema.sql` of `cenk-overtime:start` on `master.sqlite` again: it adds the table `days` to an older database.
 2. Ask once whether the employer, role or team changed inside the window, and since when. Each period is a `phase`.
-3. Fill `days` with one row per calendar day of the window, from `traces`, `commits` and the events of sections 5 and 7, by the definitions of section 1: the activity day, counted traces only (out of hours on every clock, no scheduled sends), core tier. Leave, sick days and public holidays get `off`. Save the query as `work/queries/days.sql`.
+3. Fill `days` with one row per calendar day of the window, from `traces`, `commits` and the events of sections 5 and 7, by the definitions of section 1: the activity day, counted traces only (out of hours on every clock, no scheduled sends), core tier, and commits counted as events (section 3). Leave, sick days and public holidays get `off`. Save the query as `work/queries/days.sql`.
 4. Run `python models.py --db "<case>/master.sqlite" --out "<case>/work/queries"`. Per model it writes `model-<name>.sql` (the query it read), `.csv` (the rows it used), `.txt` (the full output) and `.json` (estimates and readings), copies itself there, and fills `model_results`.
 
 | Model | Question | Method |

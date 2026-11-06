@@ -1,5 +1,6 @@
--- Master database of one overtime case. Running it again is safe: it only
--- creates what is missing, so data already loaded stays.
+-- Master database of one overtime case. Running it again is safe: tables are
+-- created only when missing, so data already loaded stays; the views are
+-- recreated, so a database made by an older version gets the current ones.
 
 CREATE TABLE IF NOT EXISTS case_info (
   key   TEXT PRIMARY KEY,  -- job, contract_hours, contract_days, contract_zone, lived_zone, window_from, window_to, ...
@@ -135,7 +136,7 @@ CREATE TABLE IF NOT EXISTS days (
   ooh_traces    INTEGER NOT NULL,           -- counted out-of-hours traces of the core tier: messages, mail, calls, commits
   ooh_chat      INTEGER,                    -- of which chat messages
   ooh_mail      INTEGER,                    -- of which sent mail
-  ooh_commits   INTEGER,                    -- of which commits
+  ooh_commits   INTEGER,                    -- of which commit events (copies of one commit count once)
   last_chat_h   REAL,                       -- last counted chat message, hours on the activity day: 21:30 = 21.5, 01:30 after midnight = 25.5
   last_mail_h   REAL,
   last_commit_h REAL,
@@ -145,12 +146,20 @@ CREATE TABLE IF NOT EXISTS days (
   events_from   TEXT                        -- message, git or both: what dated that day's events
 );
 
-CREATE VIEW IF NOT EXISTS v_repo_summary AS
+-- Days and times below are the contract zone's, from author_utc and the fixed
+-- offset in case_info (contract_offset_minutes, written by contract-offset.py).
+-- The author's own offset can be anything (Z from a UTC container). Without a
+-- fixed offset, as in a zone with daylight saving inside the window, they are
+-- NULL, and the analysis converts each commit with the zone's rules.
+DROP VIEW IF EXISTS v_repo_summary;
+CREATE VIEW v_repo_summary AS
 SELECT repo,
        count(*)                AS own_commits,
        sum(is_merge)           AS merges,
-       min(author_date)        AS first_commit,
-       max(author_date)        AS last_commit,
+       min(author_utc)         AS first_commit_utc,
+       max(author_utc)         AS last_commit_utc,
+       datetime(min(author_utc), (SELECT value FROM case_info WHERE key = 'contract_offset_minutes') || ' minutes') AS first_commit_contract,
+       datetime(max(author_utc), (SELECT value FROM case_info WHERE key = 'contract_offset_minutes') || ' minutes') AS last_commit_contract,
        sum(files_changed)      AS files_changed,
        sum(lines_added)        AS lines_added,
        sum(lines_deleted)      AS lines_deleted,
@@ -158,10 +167,10 @@ SELECT repo,
 FROM commits
 GROUP BY repo;
 
--- Day as the author's own clock showed it; the contract-zone day comes from the analysis.
-CREATE VIEW IF NOT EXISTS v_commits_by_day AS
+DROP VIEW IF EXISTS v_commits_by_day;
+CREATE VIEW v_commits_by_day AS
 SELECT repo,
-       substr(author_date, 1, 10) AS day,
+       date(author_utc, (SELECT value FROM case_info WHERE key = 'contract_offset_minutes') || ' minutes') AS day,
        count(*)                   AS commits,
        sum(files_changed)         AS files_changed,
        sum(lines_added)           AS lines_added,
@@ -169,10 +178,11 @@ SELECT repo,
 FROM commits
 GROUP BY repo, day;
 
-CREATE VIEW IF NOT EXISTS v_commits_in_window AS
+DROP VIEW IF EXISTS v_commits_in_window;
+CREATE VIEW v_commits_in_window AS
 SELECT c.*
 FROM commits c
-WHERE substr(c.author_date, 1, 10)
+WHERE date(c.author_utc, (SELECT value FROM case_info WHERE key = 'contract_offset_minutes') || ' minutes')
       BETWEEN (SELECT value FROM case_info WHERE key = 'window_from')
           AND (SELECT value FROM case_info WHERE key = 'window_to');
 

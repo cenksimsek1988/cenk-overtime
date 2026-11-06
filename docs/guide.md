@@ -201,6 +201,9 @@ Records worth requesting from the employer: Microsoft 365 or Slack audit logs an
 | Years before the direct employment crept in | Cut every source to the agreed employment window |
 | Commits under other identities were missed | List all identities first; mask IPs inside author emails |
 | Several local clones multiplied the commits | Dedupe by hash; merge by remote |
+| Rebased and cherry-picked copies multiplied the commits | Count events: one per author minute and subject |
+| Commits from a build container, on UTC, landed on the wrong day | Convert the UTC time to the contract zone, never trust the author's offset |
+| A name with Turkish letters matched no commits | Write such letters as alternatives with both cases, such as (ş\|Ş), not in brackets |
 | An ambiguous keyword (a product component called "agent") was counted as AI work | Avoid ambiguous keywords |
 | A few huge commits inflated line totals | Report medians per commit |
 | Weekly averages looked low | Also show per-worked-day figures; explain the denominator |

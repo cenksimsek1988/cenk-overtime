@@ -122,13 +122,13 @@ check 'poppler covered by PyMuPDF' 'covered by pymupdf' "$(j "item['pdfinfo']['s
 check 'module version' 'found|9.9' "$(j "item['pandas']['status'] + '|' + item['pandas']['version']")"
 check 'missing module' missing "$(j "item['statsmodels']['status']")"
 check 'ocr languages' 'tur' "$(j "','.join(r['ocr']['missing'])")"
-check 'missing list' 'ffprobe,soffice,pdfplumber,openpyxl,python-docx,pillow,statsmodels,scipy,chromium,ocr:tur' \
+check 'missing list' 'ffprobe,soffice,pdfplumber,openpyxl,python-docx,pillow,statsmodels,scipy,tzdata,chromium,ocr:tur' \
 	"$(j "','.join(r['missing'])")"
 check 'winget once per package' 'winget install --id Gyan.FFmpeg --exact --source winget;winget install --id TheDocumentFoundation.LibreOffice --exact --source winget' \
 	"$(j "';'.join(c for c in r['install'] if c.startswith('winget'))")"
 check 'tessdata download' "curl.exe -L -o \"$(native "$W/tessdata")$(if [ "$WIN" = 1 ]; then echo '\'; else echo /; fi)tur.traineddata\" https://github.com/tesseract-ocr/tessdata/raw/main/tur.traineddata" \
 	"$(j "next(c for c in r['install'] if c.startswith('curl'))")"
-check 'pip for the missing modules' 'pip install pdfplumber openpyxl python-docx pillow statsmodels scipy' \
+check 'pip for the missing modules' 'pip install pdfplumber openpyxl python-docx pillow statsmodels scipy tzdata' \
 	"$(j "next(c for c in r['install'] if ' -m pip ' in c).split(' -m ', 1)[1]")"
 check 'chromium for playwright' 'playwright install chromium' \
 	"$(j "next(c for c in r['install'] if 'playwright install' in c).split(' -m ', 1)[1]")"
@@ -144,6 +144,7 @@ check 'apt languages' 'sudo apt install tesseract-ocr-tur tesseract-ocr-deu' "$(
 
 run --os linux --json
 check 'default language eng' 'eng|' "$(j "','.join(r['ocr']['requested']) + '|' + ','.join(r['ocr']['missing'])")"
+check 'tzdata only on Windows' False "$(j "'tzdata' in item")"
 
 echo '--- text output'
 run --os windows --ocr-lang tur
@@ -168,6 +169,7 @@ module docx python-docx
 module PIL pillow
 module statsmodels statsmodels
 module scipy scipy
+module tzdata tzdata
 mkdir -p "$W/browsers/chromium-1234"
 run --os windows --ocr-lang tur,eng --json
 check 'exit code when complete' 0 "$code"

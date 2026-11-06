@@ -11,6 +11,7 @@ set -euo pipefail
 
 T=$(cd "$(dirname "$0")" && pwd)
 SCRIPT=$(cd "${1:-$T/../cenk-overtime/skills/start}/scripts" && pwd)/git-history.sh
+OFFSET=$(dirname "$SCRIPT")/contract-offset.py
 W=$(mktemp -d "${TMPDIR:-/tmp}/test-git-history.XXXXXX")
 mkdir -p "$W/home" "$W/tmp"
 C=${CASE_DIR:-$W/case}
@@ -34,6 +35,7 @@ commit() {
 q() { python -I -c 'import sqlite3, sys
 sys.stdout.reconfigure(newline="\n")
 for r in sqlite3.connect(sys.argv[1]).execute(sys.argv[2]): print("|".join("" if v is None else str(v) for v in r))' "$C/master.sqlite" "$1"; }
+sql() { python -I -c 'import sqlite3, sys; c = sqlite3.connect(sys.argv[1]); c.executescript(sys.argv[2]); c.close()' "$C/master.sqlite" "$1"; }
 
 fails=0
 check() {
@@ -127,8 +129,9 @@ for leak in bob@ 10.1.2.3 DESKTOP-ABC notarealtoken; do
 	check "nothing stores $leak" 0 "$n"
 done
 
-printf "insert into case_info values ('window_from', '2024-03-06', null), ('window_to', '2024-03-10', null);" >"$W/w.sql"
-python -I -c 'import sqlite3, sys; c = sqlite3.connect(sys.argv[1]); c.executescript(open(sys.argv[2]).read()); c.close()' "$DB" "$W/w.sql"
+sql "insert into case_info values ('window_from', '2024-03-06', null), ('window_to', '2024-03-10', null), ('contract_zone', 'Europe/Istanbul', null);"
+python -I "$OFFSET" --db "$DB" >/dev/null
+check 'fixed contract offset' 180 "$(q "select value from case_info where key = 'contract_offset_minutes'")"
 check 'window view' 3 "$(q "select count(*) from v_commits_in_window")"
 check 'repo summary' 'team/backend|5|1' "$(q "select repo, own_commits, merges from v_repo_summary")"
 check 'by day view' '2024-03-05|1' "$(q "select day, commits from v_commits_by_day order by day limit 1")"
@@ -169,6 +172,52 @@ gh_ identities --clones "$W/clones" --author 'cenk' "$URL" >/dev/null 2>&1
 check 'identities without --case reuses --clones' 0 $?
 check 'no clone in the case folder' 0 "$(find "$C" -name '*.git' | wc -l)"
 
+echo '--- clones that each hold their own commit'
+for k in 3 4; do
+	s clone -q "$R" "$W/pair$k"
+	s -C "$W/pair$k" remote set-url origin 'https://git.employer.example/team/pair.git'
+	commit "$W/pair$k" "$ME" cenk@work.example "2024-03-1${k}T21:00:00+03:00" "2024-03-1${k}T21:00:00+03:00" "Only in clone $k" --allow-empty
+done
+gh_ extract --case "$C" --author 'cenk' "$W/pair3" "$W/pair4" 2>/dev/null
+check 'pair: commits merge by hash' 7 "$(q "select count(*) from commits where repo='team/pair'")"
+check 'pair: identities count each commit once' 'cenk@local-machine|2;cenk@work.example|5' \
+	"$(q "select author_email, commits from git_identities where repo='team/pair' order by author_email" | paste -sd';')"
+
+echo '--- letters outside ASCII in the author pattern'
+R6=$W/turkish
+s init -q -b main "$R6"
+s -C "$R6" remote add origin 'https://git.employer.example/team/letters.git'
+commit "$R6" 'Işık Çağlar' ca@work.example 2024-03-05T20:00:00+03:00 2024-03-05T20:00:00+03:00 'First' --allow-empty
+commit "$R6" 'IŞIK ÇAĞLAR' ca@work.example 2024-03-06T20:00:00+03:00 2024-03-06T20:00:00+03:00 'Second' --allow-empty
+gh_ extract --case "$C" --author 'I(s|ş|Ş)(i|ı|I|İ)k' "$R6" 2>/dev/null
+check 'alternations find both spellings' 2 "$(q "select count(*) from commits where repo='team/letters'")"
+
+echo '--- days in the contract zone'
+R5=$W/clock
+s init -q -b main "$R5"
+s -C "$R5" remote add origin 'https://git.employer.example/team/clock.git'
+# A commit from a UTC container late on 5 March is 01:30 on 6 March in the contract zone.
+commit "$R5" "$ME" cenk@work.example 2024-03-05T23:00:00+03:00 2024-03-05T23:00:00+03:00 'Local evening' --allow-empty
+cl=$(s -C "$R5" rev-parse HEAD)
+commit "$R5" "$ME" cenk@work.example 2024-03-05T22:30:00Z 2024-03-05T22:30:00Z 'From a container' --allow-empty
+commit "$R5" "$ME" cenk@work.example 2024-03-06T10:00:00+03:00 2024-03-06T10:00:00+03:00 'Next morning' --allow-empty
+gh_ extract --case "$C" --author 'cenk' "$R5" 2>/dev/null
+sql "update case_info set value = '2024-03-01' where key = 'window_from'; update case_info set value = '2024-03-05' where key = 'window_to';"
+python -I "$OFFSET" --db "$DB" >/dev/null
+check 'days by the contract zone' '2024-03-05|1;2024-03-06|2' \
+	"$(q "select day, commits from v_commits_by_day where repo='team/clock' order by day" | paste -sd';')"
+check 'window edge by the contract zone' "$cl" "$(q "select hash from v_commits_in_window where repo='team/clock'")"
+check 'first and last in UTC' '2024-03-05 20:00:00|2024-03-06 07:00:00' \
+	"$(q "select first_commit_utc, last_commit_utc from v_repo_summary where repo='team/clock'")"
+check 'first and last in the contract zone' '2024-03-05 23:00:00|2024-03-06 10:00:00' \
+	"$(q "select first_commit_contract, last_commit_contract from v_repo_summary where repo='team/clock'")"
+sql "update case_info set value = 'Europe/Berlin' where key = 'contract_zone'; update case_info set value = '2024-04-30' where key = 'window_to';"
+python -I "$OFFSET" --db "$DB" >"$W/offset.txt"
+check 'daylight saving: no fixed offset' '|was 180 until' \
+	"$(q "select coalesce(value, '') || '|' || substr(note, 1, 13) from case_info where key = 'contract_offset_minutes'")"
+check 'daylight saving: days are NULL' 1 "$(q "select count(*) from v_commits_by_day where repo='team/clock' and day is null")"
+check 'daylight saving: said so' 1 "$(grep -c 'daylight saving' "$W/offset.txt")"
+
 echo '--- refusals'
 set +e
 out=$(gh_ extract --case "$C" --author cenk 'https://someone:notarealpass@git.employer.example/x.git' 2>&1)  # secret-scan: allow (fake credentials the script must refuse)
@@ -188,6 +237,16 @@ check 'clones inside the case refused' 1 $?
 check 'refused clones folder not left' no "$([ -d "$C/git/clones" ] && echo yes || echo no)"
 gh_ identities --author cenk "$URL" >/dev/null 2>&1
 check 'URL without --case or --clones refused' 1 $?
+out=$(gh_ extract --case "$C" --author 'I[sş]ık' "$R6" 2>&1)
+check 'bracket with a letter outside ASCII refused' 1 $?
+check 'refusal shows alternatives' 1 "$(printf '%s' "$out" | grep -c 'alternatives')"
+gh_ identities --case "$C" --author '[İi]şık' "$R6" >/dev/null 2>&1
+check 'refused for identities too' 1 $?
+gh_ identities --case "$C" --author 'cen[k]' "$R" >/dev/null 2>&1
+check 'ASCII brackets still allowed' 0 $?
+sql "update case_info set value = 'Mars/Olympus' where key = 'contract_zone';"
+python -I "$OFFSET" --db "$DB" >/dev/null 2>&1
+check 'unknown zone refused' 1 $?
 gh_ frobnicate >/dev/null 2>&1
 check 'unknown command' 2 $?
 gh_ --help >/dev/null 2>&1

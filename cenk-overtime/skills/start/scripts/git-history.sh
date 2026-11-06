@@ -237,7 +237,11 @@ load_sql() {
 	tsv_sql commit_files 'repo, hash, path, lines_added, lines_deleted, is_binary' tttnnn "$out/commit_files.tsv"
 	tsv_sql tags 'repo, tag, type, tag_date, commit_hash, tagger_is_person, subject' tttttnt "$out/tags.tsv"
 	tsv_sql branches 'repo, ref, branch, committer_date, author_date, commit_hash' tttttt "$out/branches.tsv"
-	tsv_sql git_identities 'repo, author_name, author_email, commits' tttn "$out/identities.tsv"
+	# Identities come from the merged commits, not from each clone's file, so a
+	# commit that several clones hold counts once.
+	echo "DELETE FROM git_identities WHERE repo = $q;"
+	echo "INSERT INTO git_identities (repo, author_name, author_email, commits)"
+	echo "  SELECT repo, author_name, author_email, count(*) FROM commits WHERE repo = $q GROUP BY author_name, author_email;"
 	echo "UPDATE commits SET author_utc = datetime(author_date), committer_utc = datetime(committer_date),"
 	echo "  dates_differ = abs(strftime('%s', author_date) - strftime('%s', committer_date)) > 300 WHERE repo = $q;"
 	echo 'COMMIT;'
@@ -348,6 +352,11 @@ while [ $# -gt 0 ]; do
 done
 
 [ -n "$AUTHOR" ] || die "--author is required"
+# Git compares letters outside ASCII byte by byte, so inside [...] they never
+# match a letter, and -i folds only ASCII letters.
+if printf '%s' "$AUTHOR" | LC_ALL=C grep -q '\[[^]]*[^ -~][^]]*]'; then
+	die "the --author pattern has a letter outside ASCII inside [...], which git never matches: write it as alternatives that list both cases, such as (s|ş|Ş) or (i|ı|İ|I)"
+fi
 [ $# -gt 0 ] || die "name at least one repository"
 if [ -n "$CASE" ]; then
 	[ -d "$CASE" ] || die "case folder not found: $CASE"

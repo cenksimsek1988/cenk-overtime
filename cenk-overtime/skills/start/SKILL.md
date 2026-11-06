@@ -51,7 +51,7 @@ In the first message, list the cases found (name, account, last change) and ask 
 For a new case, ask everything at once, in the person's language, and wait for the answers:
 
 1. **Job:** role and what a working day looked like (code, support, sales, shifts...). This picks the sources in section 2.
-2. **Contract:** working hours and days, and the contract's time zone. Where they actually lived and worked.
+2. **Contract:** working hours and days, and the contract's time zone (saved as an IANA name: `Europe/Istanbul`). Where they actually lived and worked.
 3. **Window:** first and last day to count. Earlier periods at the same company through a contractor or another employer may not count.
 4. **Identities:** every work and personal email, name spellings (with and without diacritics), chat display names, git names.
 5. **Evidence:** do they already have all of it, some of it, or none and want help finding it?
@@ -125,7 +125,7 @@ Create `master.sqlite` from `scripts/schema.sql` in this skill's base directory,
 
 | Table | One row per |
 |---|---|
-| `case_info` | intake answer: `key`, `value`, `note` (`job`, `contract_hours`, `contract_days`, `contract_zone`, `lived_zone`, `window_from`, `window_to` as `YYYY-MM-DD`, `drive_account`, `case_folder`...) |
+| `case_info` | intake answer: `key`, `value`, `note` (`job`, `contract_hours`, `contract_days`, `contract_zone` as an IANA name, `lived_zone`, `window_from`, `window_to` as `YYYY-MM-DD`, `contract_offset_minutes` from `scripts/contract-offset.py`, `drive_account`, `case_folder`...) |
 | `evidence_files` | file in `for-lawyer/raw/`: source, original path, case path, SHA-256, size, original modification time, date received, method, note (earlier case paths too) |
 | `traces` | normalized record (`cenk-overtime:collect`, section 8), with `file_id` pointing to the evidence file it came from |
 | `repos` | repository source the script read: kind, remote host, commit counts (own and others) |
@@ -137,7 +137,7 @@ Create `master.sqlite` from `scripts/schema.sql` in this skill's base directory,
 | `days` | calendar day of the window: out-of-hours counts, the last time on each clock, events, phase, days off (`cenk-overtime:analyse`, section 8) |
 | `model_results` | result of a regression check, with its plain reading (written by `models.py` of `cenk-overtime:analyse`) |
 
-Views: `v_repo_summary`, `v_commits_by_day`, `v_commits_in_window` (uses `window_from` and `window_to` from `case_info`), `v_evidence_by_source`.
+Views: `v_repo_summary`, `v_commits_by_day`, `v_commits_in_window` (uses `window_from` and `window_to` from `case_info`), `v_evidence_by_source`. Their days and times are the contract zone's, from `author_utc` and `contract_offset_minutes` (section 6, step 6).
 
 Rules:
 - Every new artifact (table, chart, report figure) is a query on `master.sqlite`. Save the query in `work/queries/`, named after the artifact (`work/queries/weekly-chart.sql` for `weekly-chart.svg`), so it can be rebuilt and checked. Queries stay out of `for-lawyer/`: the lawyers do not get the database.
@@ -168,17 +168,17 @@ All git work goes through `scripts/git-history.sh` in this skill's base director
    ```bash
    bash <skill>/scripts/git-history.sh identities --case "<case>" --author 'surname|firstname' <repo-path-or-url>...
    ```
-   Build the final pattern from the confirmed identities (escape dots: `name\.surname@`).
+   Build the final pattern from the confirmed identities (escape dots: `name\.surname@`). Git compares letters outside ASCII byte by byte, and `-i` folds only ASCII letters: write each such letter as alternatives that list both cases, `(ç|Ç)el(i|ı|İ)k`, never in brackets such as `[iı]`, which the script refuses.
 5. **Extract:** pass all clones of one repository in the same run, so they merge into one entry:
    ```bash
    bash <skill>/scripts/git-history.sh extract --case "<case>" --author '<confirmed pattern>' <repo-path-or-url>...
    ```
    It writes `git/<repo>/commits.tsv`, `commit_files.tsv`, `tags.tsv`, `branches.tsv`, `identities.tsv` and `repo.tsv`, and loads them into `master.sqlite`. Running it again for a repository replaces that repository's rows.
-6. **Window:** set `window_from` and `window_to` in `case_info`; `v_commits_in_window` keeps only commits whose author date falls inside it.
-7. **Report** per repository from `v_repo_summary`: own commits, first and last, files changed, lines added and deleted.
+6. **Window:** set `window_from`, `window_to` and `contract_zone` in `case_info`, then run `python <skill>/scripts/contract-offset.py --db "<case>/master.sqlite"` (again whenever the window or the zone changes). When the zone keeps one UTC offset through the window, it writes `contract_offset_minutes`, and `v_commits_in_window` keeps the commits whose day in the contract zone falls inside the window. When daylight saving changes the offset inside the window, it writes NULL: the views' days are then NULL, and the analysis converts each commit with the zone's rules.
+7. **Report** per repository from `v_repo_summary`: own commits, first and last in the contract zone (and in UTC), files changed, lines added and deleted.
 
 What the numbers mean, for the limitations section:
-- The time of work is the author time, with the offset the author's computer had. `dates_differ` = 1 when the committer time is more than 5 minutes away (rebase, amend, cherry-pick). Conversion to the contract's time zone happens in the analysis.
+- The time of work is the author time. Its offset is whatever the author's computer had (`Z` from a UTC container): the views and the analysis use the UTC time (`author_utc`) in the contract zone instead. `dates_differ` = 1 when the committer time is more than 5 minutes away (rebase, amend, cherry-pick).
 - Merge commits count 0 files and 0 lines: git shows no diff for them.
 - A moved or renamed file counts as deleted plus added (rename detection is off, so counts do not depend on git's guess).
 - Binary files count as changed files with no lines.

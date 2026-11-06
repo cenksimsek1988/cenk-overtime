@@ -24,6 +24,7 @@ Tesseract codes: `tur` Turkish, `eng` English, `ita` Italian, `deu` German, `spa
   2. Compare `git hash-object <file>` with the `sha` of `https://api.github.com/repos/tesseract-ocr/tessdata/contents/tur.traineddata`.
   3. Copy it in with an administrator prompt: `Start-Process powershell -Verb RunAs -Wait -ArgumentList '-NoProfile','-Command',"Copy-Item -LiteralPath '<temp>\tur.traineddata' -Destination '<tessdata>\tur.traineddata'"`.
   4. `tesseract --list-langs` must now list the language.
+- Windows has no time zone database of its own: Python's `zoneinfo` (contract-offset.py, the analysis) reads it from the `tzdata` package, which the check lists there.
 - In PowerShell, `python` can be a Microsoft Store alias that fails ("The system cannot find the path specified"): use `py`, or the path the check prints.
 - `bash` on PATH can be the WSL launcher in `System32`. git-history.sh needs Git Bash: the check prints its path.
 

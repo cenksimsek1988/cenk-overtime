@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.6.1 - 2026-11-06
+
+Fixes found while reading a real case's git history.
+
+- `git_identities` counted wrong for a repository read from several clones in one run: the last clone's count replaced the others. It is now rebuilt from the merged commits after each clone, so every commit counts once.
+- `git-history.sh` refuses an `--author` pattern with a letter outside ASCII inside `[...]`: git compares such letters byte by byte, so the bracket matched no commit, and `-i` folds only ASCII letters. `start` says to write such letters as alternatives with both cases, such as `(ç|Ç)el(i|ı|İ)k`.
+- The git views used the offset the author's computer had (`Z` from a UTC container), so a commit near midnight could land on the wrong day, and the window could gain or lose commits at its edges. The new `scripts/contract-offset.py` writes the contract zone's fixed UTC offset over the window into `case_info` (`contract_offset_minutes`), or NULL when daylight saving changes it inside the window. `v_commits_in_window` and `v_commits_by_day` take their day from `author_utc` with that offset. `v_repo_summary` gives first and last as `first_commit_utc` and `last_commit_utc` (it compared mixed offsets as text), and in the contract zone. `schema.sql` now recreates the views, so older case databases get the new ones.
+- `analyse` counts git work as events (author minute and subject, after giving reworded copies the first subject), reports merges apart, and never turns commit counts into hours.
+- On Windows the tools check lists `tzdata`, which Python's time zones need there.
+- Tests: two clones that each hold their own commit, a name with Turkish letters, commits from a UTC container near midnight and at the window's edge, a zone with daylight saving.
+
 ## 0.6.0 - 2026-11-06
 
 - `start` runs `scripts/check-tools.py` at the start of every session. It lists the programs and Python packages this computer lacks and prints the install command for winget, Homebrew or apt, and pip: ffmpeg, Tesseract with the documents' language, sqlite3, PyMuPDF, pdfplumber, openpyxl, python-docx, Pillow, pandas, statsmodels, scipy; git and Git Bash for git history; LibreOffice and Playwright for the package. The plugin decides what the case needs, tells the person in plain words that it will install some free programs, and asks one yes. A language pack comes only when a document in that language turns up or the person writes in it. Details per system: `start/references/tools.md`.
