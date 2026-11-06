@@ -18,7 +18,7 @@ Mask in every text field:
 - a whole message that is one random-looking token (>= 12 chars, >= 3 character classes, >= 3 letter/digit switches, not an identifier/path/version)
 - JWTs, PEM private keys, share links to private pages
 - internal IPv4 (not 127.x, not version numbers) with port/SID, database endpoints (host:1433/1521/3306/5432/27017... or host:SID)
-- literal passwords found by review: kept in `secrets.json` on the computer, next to the git clones (`~/overtime-clones/<case>/`), never in the case folder, which syncs and is shared; used only at build time, never copied into the package or the tool; deleted when the package is final (section 7)
+- literal passwords found by review: kept in `secrets.json` on the computer, next to the git clones (`~/overtime-clones/<case>/`), never in the case folder, which syncs to Google Drive; used only at build time, never copied into the package or the tool; deleted when the package is final (section 7)
 - a message containing a login (user + password) is masked whole by id with a stated reason
 
 Rescan after every scope change (new chats, git) and scan every output format, not just inputs: PDF text (pdftotext), xlsx cells, every SQLite table, CSV, JSONL, git metadata. Also run a shape scan for password-like tokens (upper+lower+digit+symbol) and a context scan (password-like tokens within 10 min of a password discussion). Print shapes, never the secrets.
@@ -49,6 +49,8 @@ HASHES_SHA256.txt
 README.txt               AI notice (section 4), contents, confidentiality, verification, hash deposit
 ```
 
+Build each version in `work/package/v<N>/` of the case folder, never in `for-lawyer/`, which the lawyers see as soon as a file lands there. Section 7 delivers the finished version.
+
 ## 4. Reports (HTML -> PDF with Playwright/Chromium)
 
 AI notice, in the report's language, under the title of `1_Summary.pdf` and `2_Report.pdf` and at the top of `README.txt`: "Prepared with the help of AI from the employee's own records. To be checked by a lawyer before it is filed or relied on." Keep it in every version delivered to the person and the lawyer.
@@ -67,6 +69,7 @@ Write with openpyxl; the summary sheet uses formulas (COUNTIF/COUNTIFS on the da
 
 ## 6. Reproducibility and integrity
 
+- Before the build, run `sha256sum -c hashes.txt` (`shasum -a 256 -c` on macOS) in `for-lawyer/raw/`: every line must say OK, so the evidence is unchanged since it came in.
 - The packaged tool rebuilds every table and report from 5_Raw_Data (+ git metadata) into a new folder next to the package; it never writes into the package. Build the delivered outputs by running the packaged tool itself on the packaged raw data.
 - Standard library only for the core; openpyxl and Playwright optional. Set `sys.dont_write_bytecode = True` and run with `-I -B`; delete `__pycache__` before hashing.
 - Reproduction check before delivery: copy the package, run the tool, compare every SQLite table (ignore the generation timestamp).
@@ -77,7 +80,8 @@ Write with openpyxl; the summary sheet uses formulas (COUNTIF/COUNTIFS on the da
 
 - Before delivery, have an independent reviewer (fresh subagent) audit: credentials, quotes vs data, numbers vs DB, wording/overclaims, event dating, comparisons, labels, limitations. Fix everything found and rebuild.
 - The package is a draft for the person's lawyer. Tell the person not to file it, or send it to the employer or the court, before the lawyer has checked it.
-- Deliver the zip and the summary PDF; give the zip hash. Number versions; state that the new package replaces earlier ones; if earlier deliverables contained unmasked data, tell the person not to share them.
-- Clean the workspace of scratch copies with unmasked data (review chunks, scan outputs, old builds); keep only what is needed to rebuild.
+- Deliver into `for-lawyer/`: the zip, and next to it 1_Summary.pdf, 2_Report.pdf and 3_Data_Tables.xlsx, so the lawyer can read them without unzipping. Give the zip hash, and update `for-lawyer/README.md`.
+- Number versions; state that the new package replaces earlier ones, and move the earlier ones from `for-lawyer/` to `work/package/` unless the person wants them kept there. An earlier version with unmasked data leaves `for-lawyer/` at once: tell the person that the lawyers may have downloaded it already and must not file or pass it on, and not to share copies of it themselves.
+- Clean `work/` of scratch copies with unmasked data (review chunks, scan outputs, old builds); keep only what is needed to rebuild.
 - When the person says the package is final, delete `secrets.json` (section 1) and say so; a later rebuild needs the password review again.
 - Final message to the person: what changed, key numbers in a small table, judgment calls they should know about (masked borderline items), and one next step.

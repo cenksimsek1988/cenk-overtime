@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.5.0 - 2026-11-06
+
+- Each case folder has one folder for the lawyers, `for-lawyer/`, and only that folder is ever shared, as Viewer. It holds a plain README for the lawyer in the court's language, the reports and the package, the evidence as received in `raw/<source>/` with its own subfolders (file names repeat across folders), and `raw/hashes.txt` with the SHA-256 of every raw file. The case README, `master.sqlite`, `git/` and `work/` are no longer shared: lawyers cannot use the normalized data.
+- `originals/` and `outputs/` are gone: evidence goes to `for-lawyer/raw/`, finished artifacts to `for-lawyer/`, and the query behind each artifact to `work/queries/<artifact>.sql`.
+- Before sharing, `start` checks that neither the case folder nor `overtime-cases` is shared with anyone.
+- For a case in the old layout, `start` offers to move it: hashes are checked before and after, `evidence_files.case_path` gets the new path, and `note` keeps the earlier one. A case whose whole folder was shared gets that access removed and `for-lawyer/` shared instead.
+- `court-package` builds in `work/package/v<N>/`, checks `raw/hashes.txt` before the build, and delivers the zip, summary, report and spreadsheet into `for-lawyer/`. Earlier versions move out of it. `collect` and `analyse` keep derived and unmasked files in `work/` and `master.sqlite`.
+
 ## 0.4.2 - 2026-11-06
 
 - README: install from Cenk Simsek's plugin catalog `cenk` (`https://github.com/cenksimsek1988/claude-plugins.git`) as `cenk-overtime@cenk`. This repository's own catalog `cenk-overtime` stays, for a clone and for local work; install one way only. The skills are unchanged from 0.4.1.

@@ -6,6 +6,7 @@ Cenk's Claude Code plugin for employees who claim unpaid overtime. Public: githu
 
 - Generic material only: the plugin, its tests and docs. Case data (documents, figures, git exports, connections) lives in each person's own Drive case folder, never here.
 - Before publishing any text, check it for figures and examples from a real case, not only for names and emails.
+- Case folders: only `for-lawyer/` is shared (evidence as received in `raw/`, `raw/hashes.txt`, the artifacts). The case README, `master.sqlite`, `git/` and `work/` stay unshared: lawyers cannot use the normalized data (Cenk's decision, 6 Nov 2026, from 0.5.0).
 
 ## Layout
 

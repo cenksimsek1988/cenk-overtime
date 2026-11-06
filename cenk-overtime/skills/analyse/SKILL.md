@@ -91,3 +91,5 @@ When the person asks for numbers, answer with a small table (weekday / weekend /
 ## 8. Outputs for the package
 
 SQLite tables: messages (with tier flags, categories, period ids, tags, versions, tickets, masked flag), periods (core) and periods_all (all chats) with counts, first/last activity, session/observed/upper minutes, events, event evidence, commits, tags, release branches, repo summary, manual decisions, dropped copies, validation checks, metadata. Views: monthly summary, event pre/post windows, prod/patch messages, chat summary, AI/tool records (Teams and commits kept apart). Keep every number in the reports computable from these tables.
+
+In a case folder from `cenk-overtime:start`: tables go into `master.sqlite`, charts and drafts into `work/`, and each artifact's query into `work/queries/<artifact>.sql`. Nothing goes into `for-lawyer/`: these outputs are not masked yet, and the lawyers see that folder at once. `cenk-overtime:court-package` delivers there.

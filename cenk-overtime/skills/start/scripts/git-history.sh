@@ -7,7 +7,7 @@
 # REPO is a local repository path or a URL. A URL is cloned with --mirror, with
 # the person's own git login, into the clones folder: --clones, by default
 # ~/overtime-clones/<case folder name>. It must be outside the case folder,
-# which is synced and shared. extract deletes the clone after reading it unless
+# which syncs to the cloud. extract deletes the clone after reading it unless
 # --keep-clone is given. Local repositories are only read.
 # REGEX is an extended regular expression, matched without case against each
 # author's "Name <email>". extract writes TSV files to DIR/git/<repo>/ and
@@ -54,8 +54,8 @@ name_from_url() {
 
 safe_dir_name() { printf '%s\n' "$1" | sed -E 's#[^A-Za-z0-9._-]+#_#g'; }
 
-# A clone holds the employer's source code. The case folder is synced to the
-# cloud and shared with lawyers, so clones never go inside it.
+# A clone holds the employer's source code. The case folder syncs to the cloud
+# and holds the folder shared with lawyers, so clones never go inside it.
 prepare_clones_dir() {
 	[ -n "$CLONES" ] || die "--clones or --case is needed to clone a URL"
 	mkdir -p "$CLONES"
@@ -64,7 +64,7 @@ prepare_clones_dir() {
 		case "$CLONES/" in
 			"$CASE"/*)
 				rmdir "$CLONES" 2>/dev/null || true
-				die "the clones folder must be outside the case folder, which is synced and shared: $CLONES"
+				die "the clones folder must be outside the case folder, which syncs to the cloud: $CLONES"
 				;;
 		esac
 	fi

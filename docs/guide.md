@@ -133,7 +133,7 @@ Showing both estimates lets the reader see a range instead of a single number th
 
 ## Step 6 — Privacy, credentials and confidentiality
 
-- Scan every text for passwords, keys, tokens, internal IPs, database addresses and share links; keep literal passwords in a local file used only for masking, outside the shared case folder and never in the package, and delete it when the package is final; mask whole messages that contain a login; rescan every output and after every scope change.
+- Scan every text for passwords, keys, tokens, internal IPs, database addresses and share links; keep literal passwords in a local file used only for masking, outside the case folder and never in the package, and delete it when the package is final; mask whole messages that contain a login; rescan every output and after every scope change.
 - Read every message for private matters (parallel reviewers from one written brief). Group A: the employee's own unrelated private life, masked on request. Group B: anyone else's private information, always masked. The employee chooses what of their own to keep (e.g. health that supports a claim of strain).
 - Masked messages keep their time and still count. Never publish counts by private topic.
 - Do not mask unflattering work content; tell the lawyer about private messages that could be used against the employee (job hunting, side business, errands during hours).

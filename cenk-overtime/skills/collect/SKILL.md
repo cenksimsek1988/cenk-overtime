@@ -23,6 +23,7 @@ Not legal advice. Before exporting anything from employer systems, tell the pers
 - Collect what the person **sent or did**, not what they received.
 - Keep originals untouched; work on copies. Hash originals (SHA-256) the day they are collected and tell the person to email the hashes to themselves.
 - Save raw results per query/window before any processing, so collection can be audited.
+- In a case folder from `cenk-overtime:start`: evidence as received (exports, each window's raw result) goes into `for-lawyer/raw/<source>/` through its section 5, with hashes. Everything derived (window lists, merges, collection notes, the normalized table) goes into `work/` or `master.sqlite`, which are never shared.
 - Never print secrets found in data back to the user; never copy source code anywhere.
 
 ## 2. Sources and how to get them
@@ -100,7 +101,7 @@ One record per trace:
 - Replies: split `Author  quoted text  own text` and classify only the person's own words. If the split fails, flag it.
 - 1:1 chats without names: in a 1:1, every quoted author who is not the person is the other participant -> infer the name, mark it as inferred.
 - Exclude self-notes chats (e.g. Teams `48:notes`), bots and drafts; list them as excluded.
-- Keep the full unmasked table only in the private workspace; masking happens before anything is shared (see `cenk-overtime:court-package`).
+- Keep the full unmasked table only in the private workspace (`master.sqlite` and `work/` of the case folder), never in `for-lawyer/`; masking happens before anything is shared (see `cenk-overtime:court-package`).
 
 ## 7. Hand-off checklist
 
