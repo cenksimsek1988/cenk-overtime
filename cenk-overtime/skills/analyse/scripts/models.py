@@ -12,8 +12,9 @@ model it writes into --out:
   model-<name>.json  estimates, 95% intervals, p-values, counts and a plain reading
 and a copy of this script, so the court expert can run it again. Every result
 also goes into the table `model_results`. Needs pandas, numpy, statsmodels and
-scipy. Exit code 0 when the models ran (some may be skipped for too few days),
-1 when the table is missing or incomplete.
+scipy. Exit code 0 when the models ran (some give counts only: too few days, a
+zero on one side of a comparison, or event days that match a calendar control
+or another event), 1 when the table is missing or incomplete.
 
 Models (NAME):
   event-days  out-of-hours traces per day on release, patch and incident days
@@ -268,6 +269,45 @@ def few_days(sample, term, frame):
     return skipped(sample, term, len(frame), n_event, "fewer than %d days" % MIN_EVENT_DAYS, reading)
 
 
+def no_traces(sample, term, frame):
+    """No trace at all on a term's days separates the fit: its ratio runs to 0, with an interval of 0 to 0."""
+    n_event = int(frame[term].sum())
+    other = frame[frame[term] == 0]
+    reading = "The %d %s had no out-of-hours traces, against %d on the %d other days; a ratio cannot be estimated with a zero." % (
+        n_event, TERM_TEXT[term], other["ooh_traces"].sum(), len(other))
+    return skipped(sample, term, len(frame), n_event, "no out-of-hours trace on these days", reading)
+
+
+def no_traces_elsewhere(sample, term, frame, terms):
+    """No trace outside the terms' days separates the fit the other way: the ratios run to infinity, or the fit fails."""
+    n_event = int(frame[term].sum())
+    reading = "The %d %s had %d out-of-hours traces, against none on the %d days that were not %s; a ratio cannot be estimated with a zero." % (
+        n_event, TERM_TEXT[term], frame.loc[frame[term] == 1, "ooh_traces"].sum(),
+        (frame[terms] == 0).all(axis=1).sum(), " or ".join(TERM_TEXT[t] for t in terms))
+    return skipped(sample, term, len(frame), n_event, "no out-of-hours trace outside these days", reading)
+
+
+def same_days(sample, term, frame):
+    n_event = int(frame[term].sum())
+    other = frame[frame[term] == 0]
+    reading = "The %d %s fall on exactly the days of a weekday, month or year, or of another event: their effect cannot be told apart from it. " \
+              "They had %d out-of-hours traces, the %d other days %d." % (
+                  n_event, TERM_TEXT[term], frame.loc[frame[term] == 1, "ooh_traces"].sum(), len(other), other["ooh_traces"].sum())
+    return skipped(sample, term, len(frame), n_event, "cannot be told apart from a control or another term", reading)
+
+
+def told_apart(frame, terms, controls):
+    """The terms that add something to the calendar controls and the terms before them; any other makes the fit singular."""
+    if not terms:
+        return []
+    kept, rank = [], np.linalg.matrix_rank(design(frame, [], controls).to_numpy())
+    for term in terms:
+        new_rank = np.linalg.matrix_rank(design(frame, kept + [term], controls).to_numpy())
+        if new_rank > rank:
+            kept, rank = kept + [term], new_rank
+    return kept
+
+
 def event_days(d):
     controls = [c for c in ("weekday", "month", "year") if d[c].nunique() > 1]
     same = "with the same " + ", ".join(controls[:-1]) + (" and " if len(controls) > 1 else "") + controls[-1] \
@@ -275,16 +315,23 @@ def event_days(d):
     samples = {"all-days": d[d["working"] == 1], "active-days": d[(d["working"] == 1) & (d["active"] == 1)]}
     results, fits, diagnostics, estimated = [], [], {}, set()
     for sample, frame in samples.items():
-        terms = [t for t in TERM_TEXT if frame[t].sum() >= MIN_EVENT_DAYS]
+        enough = [t for t in TERM_TEXT if frame[t].sum() >= MIN_EVENT_DAYS]
+        traced = [t for t in enough if frame.loc[frame[t] == 1, "ooh_traces"].sum() > 0]
+        terms = told_apart(frame, traced, controls)
         for term in TERM_TEXT:
-            # A term too rare on all days is reported once, not again for the active days.
+            # A term left out on all days is reported once, not again for the active days.
             if term in terms or (sample == "active-days" and term not in estimated):
                 continue
-            results.append(few_days(sample, term, frame))
+            report = few_days if term not in enough else no_traces if term not in traced else same_days
+            results.append(report(sample, term, frame))
+        # With every trace on the terms' days there is nothing to compare them with, here or on the active days.
+        if terms and frame.loc[(frame[terms] == 0).all(axis=1), "ooh_traces"].sum() == 0:
+            results.extend(no_traces_elsewhere(sample, term, frame, terms) for term in terms)
+            terms = []
         if sample == "all-days":
             estimated = set(terms)
         if not terms:
-            continue
+            break
         X = design(frame, terms, controls)
         groups = week_groups(frame)
         cov = {"cov_type": "cluster", "cov_kwds": {"groups": groups}}
@@ -423,6 +470,10 @@ def trend(d):
         results.append(skipped("weeks", "per_year", n, n, "fewer than %d weeks" % MIN_WEEKS,
                                "Only %d weeks: too few for a trend." % n))
         return out
+    if not weeks["traces"].sum():
+        results.append(skipped("weeks", "per_year", n, n, "no out-of-hours trace in any week",
+                               "No out-of-hours traces in any of the %d weeks: no trend to estimate." % n))
+        return out
     offset = np.log(weeks["working_days"].to_numpy(dtype=float))
     cov = {"cov_type": "HAC", "cov_kwds": {"maxlags": WEEK_LAGS}}
     result, family, dispersion = fit_counts(weeks["traces"], design(weeks, ["years"], []), cov, offset)
@@ -454,19 +505,37 @@ def phase_model(weeks, offset, cov, out):
         out["results"].append(skipped("weeks", "phases", len(weeks), len(named), reason,
                                       "Phases were not compared: %s." % reason))
         return
-    dummies = {}
+    traces = weeks.groupby("phase")["traces"].sum()
+    compared = [p for p in order[1:] if traces[p] > 0 and traces[order[0]] > 0]
     for later in order[1:]:
+        if later not in compared:
+            # A zero on either side separates the fit, as on event days.
+            out["results"].append(skipped(
+                "weeks", "phase:" + later, len(weeks), int(sizes[later]), "no out-of-hours trace in one of the two phases",
+                "The phase '%s' had %d out-of-hours traces in %d weeks, against %d in the %d weeks of '%s'; a ratio cannot be estimated with a zero." % (
+                    later, traces[later], sizes[later], traces[order[0]], sizes[order[0]], order[0])))
+    if not compared:
+        return
+    # A phase left out takes its weeks along: among the first phase's they would change what the others are compared with.
+    used = weeks["phase"].isin(order[:1] + compared).to_numpy()
+    frame = weeks[used].copy()
+    dummies = {}
+    for later in compared:
         column = "phase_%d" % (order.index(later))
-        weeks[column] = (weeks["phase"] == later).astype(float)
+        frame[column] = (frame["phase"] == later).astype(float)
         dummies[column] = later
-    result, family, dispersion = fit_counts(weeks["traces"], design(weeks, list(dummies), []), cov, offset)
+    result, family, dispersion = fit_counts(frame["traces"], design(frame, list(dummies), []), cov, offset[used])
     method = "%s, working days as exposure, Newey-West errors (%d weeks); reference: %s" % (family, WEEK_LAGS, order[0])
+    left_out = ", ".join("'%s'" % p for p in order[1:] if p not in compared)
+    if left_out:
+        method += "; without the weeks of " + left_out
+        out["samples"].append("phases: without the weeks of %s (no out-of-hours trace); any weeks on either side count as adjacent in the Newey-West errors" % left_out)
     for column, later in dummies.items():
         est, low, high, p = rate_ratio(result, column)
         reading = "In the phase '%s' there were %s times as many out-of-hours traces per working day as in '%s' (95%% CI %s to %s; %s; %d and %d weeks)" % (
             later, ratio(est), order[0], ratio(low), ratio(high), p_text(p), sizes[later], sizes[order[0]])
         reading += "; the data cannot tell this from no difference." if low <= 1 <= high else "."
-        out["results"].append(row("weeks", "phase:" + later, est, low, high, p, len(weeks), int(sizes[later]), method, reading))
+        out["results"].append(row("weeks", "phase:" + later, est, low, high, p, len(frame), int(sizes[later]), method, reading))
     out["diagnostics"]["phases"] = {"method": method, "pearson_dispersion": num(dispersion), "reference": order[0]}
     out["fits"].append(("phases: " + method, result, out["diagnostics"]["phases"]))
 

@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.7.0 - 2026-11-10
+
+Method gaps found by an independent check of an analysis.
+
+- `models.py`, event-days model: when the days of an event term had no out-of-hours trace at all, the fit separated completely and reported a rate ratio of 0.00 with a 95% CI of 0.00 to 0.00 and p < 0.001. The script now tests for this before fitting and gives counts only, with the reading "a ratio cannot be estimated with a zero". Those days stay among the other days for the remaining terms, as the days of a term with too few days do.
+- `models.py`, event-days model: the script stopped with a `LinAlgError` when every trace fell on the terms' days and none elsewhere, or when a term fell on exactly the days of a weekday, month, year or another term. The first now gives counts only with the same reading. The second gives counts only for that term, and the other terms are still estimated.
+- `models.py`, trend model: a phase with no traces read 0.00 with an interval of 0.00 to 0.00, a first phase with no traces gave a ratio in the billions, and a window with no traces stopped the script. Each now gives counts only. The weeks of a later phase without traces leave the fit and the output says so, and the other phases are still compared with the first.
+- `analyse`, section 4: first and last trace hours on the activity-day clock, with seconds. The observed span is shown as the middle measure beside the conservative and continuous ones. In the person's statement scenario, a weekend period whose first trace comes after midnight counts from that trace and stays out of the average first hour. The report sizes the continuous estimate. Weekly hours against a legal limit are the contract hours due that week plus the out-of-hours estimate, summed unrounded, with a note on what the due hours rest on.
+- `analyse`, section 8: when sources cover the window unevenly, or a few days hold most of the traces on event days, the models run again on copies of the database. A full-window trend that does not survive is reported as following the sources.
+- `analyse`, section 2: a mail review also reads mails sent to the person's own addresses.
+- Tests: event days with no trace or with traces on a single day, all traces on event days, event days on exactly the days of a weekday, phases with no trace, and a window with no trace.
+
 ## 0.6.1 - 2026-11-06
 
 Fixes found while reading a real case's git history.

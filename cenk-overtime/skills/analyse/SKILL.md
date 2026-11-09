@@ -28,6 +28,7 @@ A trace counts only if both clocks (when two exist) are out of hours.
 
 - **Core**: clearly-work conversations + commits. Main analysis.
 - **All chats**: everything, shown beside core as supporting evidence. Give a work-content lower bound: share of messages matching a work-term regex (release, branch, commit, merge, deploy, ticket key, sql, bug, test, server, customer...). Short replies ("ok") never match, so say it is a lower bound. Also: periods with activity only in non-core chats and how many contain a work term.
+- Mail review: also read mails sent to the person's own addresses; a filter on recipient domains misses them. Example: a filter on `@customer.example` misses the 23:40 mail from the work account to `ada@private.example`.
 
 ## 3. Counts to report
 
@@ -54,16 +55,25 @@ def upper_minutes(kind, day, first, last):
     """Continuous: evening = shift end -> last trace; morning = first trace -> shift start; weekend = first -> last."""
 ```
 
-Also keep observed span (first -> last trace). Hours come from these sessions and days; a count of commits never becomes hours.
+Also keep observed span (first -> last trace) and show it as the middle measure beside the conservative and continuous ones. Example: traces at 19:00, 19:20 and 21:30, shift end 18:00: conservative 0.33 h, first-to-last 2.5 h, continuous 3.5 h. Hours come from these sessions and days; a count of commits never becomes hours.
+
+First and last trace hours are read on the activity-day clock, with seconds. Example: 01:30:00 after midnight = 25.5; 21:15:36 = 21.26.
 
 Present separately for **weekday (evenings + mornings), weekend, total**:
 - per worked day (average over periods with a trace),
 - weekly average = total / all weeks in the window (state that quiet weeks, holidays and leave are in the denominator),
 - total hours over the whole window.
 
-Explain the trace limit in plain words: a day without any message or commit counts as zero; hours before the first trace are invisible (report the median first-trace time on weekends). If the person states habits ("on worked weekends I started ~11:00, 1-2 h breaks"), compute that as a separate scenario labelled as the person's statement, with a range, and also restricted to clearly-worked days (> 3 traces), never mixed into the data-based figures.
+Explain the trace limit in plain words: a day without any message or commit counts as zero; hours before the first trace are invisible (report the median first-trace time on weekends). If the person states habits ("on worked weekends I started ~11:00, 1-2 h breaks"), compute that as a separate scenario labelled as the person's statement, with a range, and also restricted to clearly-worked days (> 3 traces), never mixed into the data-based figures. In that scenario a weekend period whose first trace comes after midnight counts from that trace and stays out of the average first hour. Example: stated start 11:00, Saturday's first trace on Sunday at 00:40 = 24.67: the period counts from 24.67, and 24.67 is not averaged in.
 
-When the person asks for numbers, answer with a small table (weekday / weekend / total x conservative / continuous) and two sentences on what each assumes. Clarify what git alone shows (fewer days but later ends) vs chat + git (most complete).
+When the person asks for numbers, answer with a small table (weekday / weekend / total x conservative / first-to-last / continuous) and one sentence on what each assumes. Clarify what git alone shows (fewer days but later ends) vs chat + git (most complete).
+
+Size the continuous estimate in the report: the hours that lie before an evening's first trace, the single-trace periods, and the evenings whose first trace came after midnight. Example: continuous 300 h; 120 h lie before an evening's first trace, of these 40 h in 35 single-trace periods and 45 h in 6 evenings whose first trace came after midnight.
+
+Weekly hours against a legal weekly limit:
+- A week's hours = the contract hours due that week + the out-of-hours estimate, never a flat contract week. Due: none on public holidays and full days off, half on half days. Example: 8 h days, a week with one public holiday and one half day: due 3 x 8 + 4 = 28 h; with 6.5 h out of hours, 34.5 h, not 40 + 6.5 = 46.5 h.
+- Sum the weeks unrounded; round only the total. Example: 1.26 h and 1.26 h over the limit = 2.5 h, not 1.3 + 1.3 = 2.6 h.
+- Say what the due hours rest on: working days with no trace at all, and leave that is not on record. Example: "due hours include 8 h on each of 14 working days with no trace at all; leave for the first year is not on record, so any taken then still counts as due".
 
 ## 5. Release, patch and incident events from the person's words
 
@@ -99,6 +109,9 @@ After sections 3 to 7, test the patterns with `scripts/models.py` in this skill'
 2. Ask once whether the employer, role or team changed inside the window, and since when. Each period is a `phase`.
 3. Fill `days` with one row per calendar day of the window, from `traces`, `commits` and the events of sections 5 and 7, by the definitions of section 1: the activity day, counted traces only (out of hours on every clock, no scheduled sends), core tier, and commits counted as events (section 3). Leave, sick days and public holidays get `off`. Save the query as `work/queries/days.sql`.
 4. Run `python models.py --db "<case>/master.sqlite" --out "<case>/work/queries"`. Per model it writes `model-<name>.sql` (the query it read), `.csv` (the rows it used), `.txt` (the full output) and `.json` (estimates and readings), copies itself there, and fills `model_results`.
+5. Where one of these applies, run the models again on a copy of `master.sqlite` in `work/`, with its own `--out` folder: a run replaces that model's rows in `model_results`.
+   - Sources cover the window unevenly: once on the source that covers the whole window, once on the period when all sources are present. Example: git for 24 months, chat for the last 14: one copy with `UPDATE days SET ooh_traces = coalesce(ooh_commits, 0)`, one copy with `days` cut to those 14 months and `window_from` in `case_info` moved to their first day.
+   - A few days hold most of the traces on event days: once without those days. Example: 3 of 30 release days hold 60% of the release-day traces: a copy with `off` set on those 3 days.
 
 | Model | Question | Method |
 |---|---|---|
@@ -115,11 +128,12 @@ Reading the results, in the report's language, with the script's numbers unchang
 - With every result, say what it does not show:
   - Association, not cause: releases come with other things (deadlines, staffing, a customer).
   - Days without traces count as zero; work that left no trace stays out.
-  - Under 10 event days the reading says "indicative"; under 5 the script gives counts only.
+  - Under 10 event days the reading says "indicative". The script gives counts only under 5 days, with a zero on one side of a comparison (`weekends` still gives Fisher's p), and for event days on exactly the days of a weekday, month, year or other event.
   - Busy days come in runs. The errors allow for days of the same week being alike; a Ljung-Box p below 0.05 (in `diagnostics`) means the runs last longer, and the intervals may be too narrow.
   - Several tests at once: give their number (`tests` in each JSON file); about one in twenty passes 0.05 by chance.
   - Event days found from out-of-hours messages always have some activity: lead with the active-days results and with events dated from git (`events_from`).
   - The clocks model supports the timestamps, not the hours between them.
+- A full-window trend that does not survive the runs of step 5 is reported as following the sources. Example: "the rise of 40% a year follows the chat export that starts in month 11: git alone and the last 14 months show no change".
 - Never "caused", "because of" or "proves"; write "went with", "was higher on".
 
 ## 9. Outputs for the package

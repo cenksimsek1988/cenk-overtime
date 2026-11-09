@@ -180,10 +180,95 @@ check 'the copy reruns' same "$(cmp -s "$W/out/model-clocks.json" "$W/expert/mod
 check 'one model only' 'model-clocks.csv model-clocks.json model-clocks.sql model-clocks.txt models.py' "$(ls "$W/expert" | sort | tr '\n' ' ' | sed 's/ $//')"
 check 'rerun keeps one row per result' "$(j event-days "len(m['results'])")" "$(q "select count(*) from model_results where model = 'event-days'")"
 
+# edit SQL COPY: COPY is the case database with SQL applied to it.
+edit() {
+	cp "$DB" "$2"
+	"$PY" -I -c 'import sqlite3, sys; c = sqlite3.connect(sys.argv[1]); c.executescript(sys.argv[2]); c.close()' "$(native "$2")" "$1"
+}
+# unestimated LABEL MODEL KEY DIR: the result KEY has counts only.
+unestimated() {
+	check "$1" 'None|None|None|None|not estimated' \
+		"$(j "$2" "'|'.join(str(r['$3'][k]) for k in ('estimate', 'ci_low', 'ci_high', 'p_value', 'method'))" "$4")"
+}
+
+echo '--- event days without any trace'
+QUIET='ooh_traces = 0, ooh_chat = 0, ooh_mail = 0, ooh_commits = 0, last_chat_h = null, last_mail_h = null, last_commit_h = null'
+edit "update days set $QUIET where patch = 1;" "$W/zero.sqlite"
+run "$MODELS" --db "$(native "$W/zero.sqlite")" --out "$(native "$W/zero")" --model event-days
+check 'runs' 0 "$code"
+unestimated 'no ratio, interval or p-value' event-days all-days/patch "$W/zero"
+check 'days counted' '703|14' "$(j event-days "'%d|%d' % (r['all-days/patch']['n'], r['all-days/patch']['n_event'])" "$W/zero")"
+check 'reading gives the counts' \
+	"The 14 patch days had no out-of-hours traces, against $(q "select sum(ooh_traces) || ' on the ' || count(*) from days where off is null and patch = 0" "$W/zero.sqlite") other days; a ratio cannot be estimated with a zero." \
+	"$(j event-days "r['all-days/patch']['reading']" "$W/zero")"
+check 'reported once, not for the active days' 0 "$(j event-days "sum(1 for k in r if k == 'active-days/patch')" "$W/zero")"
+check 'other terms still estimated' True "$(j event-days "r['all-days/release']['estimate'] > 1 and r['active-days/release']['estimate'] > 1" "$W/zero")"
+check 'empty in model_results' 1 \
+	"$(q "select count(*) from model_results where model = 'event-days' and sample = 'all-days' and term = 'patch' and estimate is null and ci_low is null and ci_high is null and p_value is null" "$W/zero.sqlite")"
+edit "update days set $QUIET where patch = 1; update days set ooh_traces = 2 where day = (select min(day) from days where patch = 1);" "$W/one.sqlite"
+run "$MODELS" --db "$(native "$W/one.sqlite")" --out "$(native "$W/one")" --model event-days
+check 'traces on one of those days: estimated' True "$(j event-days "r['all-days/patch']['estimate'] is not None" "$W/one")"
+
+echo '--- all traces on event days'
+edit 'update days set ooh_traces = 0 where release = 0; update days set ooh_traces = 2 where release = 1;' "$W/only.sqlite"
+run "$MODELS" --db "$(native "$W/only.sqlite")" --out "$(native "$W/only")" --model event-days
+check 'one term: runs' 0 "$code"
+unestimated 'one term: no ratio, interval or p-value' event-days all-days/release "$W/only"
+check 'one term: reading gives the counts' \
+	'The 34 release days had 68 out-of-hours traces, against none on the 669 days that were not release days; a ratio cannot be estimated with a zero.' \
+	"$(j event-days "r['all-days/release']['reading']" "$W/only")"
+check 'one term: nothing again for the active days' 0 "$(j event-days "sum(1 for k in r if k.startswith('active-days/'))" "$W/only")"
+edit 'update days set ooh_traces = 0 where release = 0 and patch = 0;' "$W/both.sqlite"
+run "$MODELS" --db "$(native "$W/both.sqlite")" --out "$(native "$W/both")" --model event-days
+check 'two terms: runs' 0 "$code"
+check 'two terms: reading names both' \
+	"The 14 patch days had $(q 'select sum(ooh_traces) from days where patch = 1 and off is null' "$W/both.sqlite") out-of-hours traces, against none on the 655 days that were not release days or patch days; a ratio cannot be estimated with a zero." \
+	"$(j event-days "r['all-days/patch']['reading']" "$W/both")"
+
+echo '--- event days on exactly the days of a weekday'
+edit "update days set release = (strftime('%w', day) = '3'), patch = 0;" "$W/wed.sqlite"
+run "$MODELS" --db "$(native "$W/wed.sqlite")" --out "$(native "$W/wed")" --model event-days
+check 'runs' 0 "$code"
+unestimated 'no ratio, interval or p-value' event-days all-days/release "$W/wed"
+check 'reading gives the counts' \
+	"The $(q 'select count(*) from days where off is null and release = 1' "$W/wed.sqlite") release days fall on exactly the days of a weekday, month or year, or of another event: their effect cannot be told apart from it. They had $(q 'select sum(ooh_traces) from days where off is null and release = 1' "$W/wed.sqlite") out-of-hours traces, the $(q 'select count(*) from days where off is null and release = 0' "$W/wed.sqlite") other days $(q 'select sum(ooh_traces) from days where off is null and release = 0' "$W/wed.sqlite")." \
+	"$(j event-days "r['all-days/release']['reading']" "$W/wed")"
+
+echo '--- phases without any trace'
+edit "update days set ooh_traces = 0 where phase = 'second';" "$W/phase.sqlite"
+run "$MODELS" --db "$(native "$W/phase.sqlite")" --out "$(native "$W/phase")" --model trend
+check 'later phase: runs' 0 "$code"
+unestimated 'later phase: no ratio, interval or p-value' trend weeks/phase:second "$W/phase"
+check 'later phase: reading gives the counts' \
+	"The phase 'second' had 0 out-of-hours traces in 43 weeks, against $(q 'select sum(ooh_traces) from days where off is null' "$W/phase.sqlite") in the 61 weeks of 'first'; a ratio cannot be estimated with a zero." \
+	"$(j trend "r['weeks/phase:second']['reading']" "$W/phase")"
+edit "update days set ooh_traces = 0 where day < '2024-03-04';" "$W/first.sqlite"
+run "$MODELS" --db "$(native "$W/first.sqlite")" --out "$(native "$W/first")" --model trend
+check 'first phase: runs' 0 "$code"
+unestimated 'first phase: no ratio, interval or p-value' trend weeks/phase:second "$W/first"
+check 'first phase: reading gives the counts' \
+	"The phase 'second' had $(q 'select sum(ooh_traces) from days where off is null' "$W/first.sqlite") out-of-hours traces in 43 weeks, against 0 in the 61 weeks of 'first'; a ratio cannot be estimated with a zero." \
+	"$(j trend "r['weeks/phase:second']['reading']" "$W/first")"
+edit "update days set phase = case when day < '2023-09-04' then 'first' when day < '2024-03-04' then 'middle' else 'last' end; update days set ooh_traces = 0 where phase = 'middle';" "$W/middle.sqlite"
+run "$MODELS" --db "$(native "$W/middle.sqlite")" --out "$(native "$W/middle")" --model trend
+check 'middle phase: runs' 0 "$code"
+unestimated 'middle phase: no ratio, interval or p-value' trend weeks/phase:middle "$W/middle"
+check 'middle phase: the others are compared' True "$(j trend "r['weeks/phase:last']['estimate'] is not None" "$W/middle")"
+check 'middle phase: its weeks leave the fit' '78|1' \
+	"$(j trend "r['weeks/phase:last']['n']" "$W/middle")|$(grep -c 'No. Observations: *78' "$W/middle/model-trend.txt")"
+check 'middle phase: named in the samples and the method' True \
+	"$(j trend "any('middle' in s for s in m['samples']) and 'middle' in r['weeks/phase:last']['method']" "$W/middle")"
+
+echo '--- no trace in the whole window'
+edit 'update days set ooh_traces = 0;' "$W/silent.sqlite"
+run "$MODELS" --db "$(native "$W/silent.sqlite")" --out "$(native "$W/silent")"
+check 'runs' 0 "$code"
+check 'no trend' 'None|No out-of-hours traces in any of the 104 weeks: no trend to estimate.' \
+	"$(j trend "str(r['weeks/per_year']['estimate']) + '|' + r['weeks/per_year']['reading']" "$W/silent")"
+
 echo '--- refusals'
 bad() {
-	cp "$DB" "$W/bad.sqlite"
-	"$PY" -I -c 'import sqlite3, sys; c = sqlite3.connect(sys.argv[1]); c.executescript(sys.argv[2]); c.close()' "$(native "$W/bad.sqlite")" "$1"
+	edit "$1" "$W/bad.sqlite"
 	run "$MODELS" --db "$(native "$W/bad.sqlite")" --out "$(native "$W/bad")"
 }
 bad "delete from days where day = '2024-02-29';"
