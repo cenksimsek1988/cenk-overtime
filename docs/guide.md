@@ -100,12 +100,14 @@ Adapt the hours to the contract. An **activity period** is one evening, one earl
 | Observed span | First to last trace of the period | Continuous work between the first and the last trace |
 | Continuous | Weekday evening: end of the working day to the last trace. Early morning: first trace to the start of work. Weekend: first to last trace. | You worked without a break from the end of the shift |
 
-Report weekdays, weekends and the total separately, per worked day and per week. Weekly averages divide by all weeks in the period, including quiet weeks, holidays and leave; say so next to the figure. A results table can look like this:
+Report weekday, Saturday, Sunday and public-holiday hours and the total separately, per worked day and per week; each hour sits in one row, and a public holiday on a Saturday goes in the public-holiday row. Weekly averages divide by all weeks in the period, including quiet weeks, holidays and leave; say so next to the figure. A results table can look like this:
 
 | Per week, on average | Conservative | Continuous |
 | --- | --- | --- |
 | Weekday evenings and mornings | … h … min | … h … min |
-| Weekends | … h … min | … h … min |
+| Saturdays | … h … min | … h … min |
+| Sundays | … h … min | … h … min |
+| Public holidays | … h … min | … h … min |
 | **Total** | **… h … min** | **… h … min** |
 | Total over the whole period | … hours | … hours |
 

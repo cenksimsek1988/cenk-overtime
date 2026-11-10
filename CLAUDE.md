@@ -56,4 +56,4 @@ Cenk's Claude Code plugin for employees who claim unpaid overtime. Public: githu
 
 - The `.plugin` upload to claude.ai is untested since 0.2.0; Cowork is untested.
 - Not tested: macOS and Linux `awk`; `check-tools.py` on macOS and Linux, including the PEP 668 venv commands; the Tools step in a live session.
-- The workbench's `scripts/check-plugin.sh` FAILs on this plugin on the description budget (350 against the 1024-character rule under Layout), quoted skill names, and CHANGELOG place and format; all three predate 0.7.0.
+- Workbench 0.19.3's `scripts/check-plugin.sh` gives this plugin one FAIL, the description budget (350 against the 1024-character rule under Layout), and one WARN, no `tests/run.sh` (the three test scripts under Check run one by one).
