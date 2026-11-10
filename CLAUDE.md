@@ -31,7 +31,7 @@ Cenk's Claude Code plugin for employees who claim unpaid overtime. Public: githu
 ## Check
 
 - `bash tests/test-git-history.sh`: 70 checks on throwaway repositories in the temp folder (also contract-offset.py); `CASE_DIR=<new folder>` puts the case folder elsewhere, such as Google Drive. It loads through `sqlite3` when that is on PATH, else through Python: run it once with each.
-- `sh tests/test-check-tools.sh`: 30 checks with stub programs and stub Python packages; the real ones stay out of sight.
+- `sh tests/test-check-tools.sh`: 30 checks with stub programs and stub Python packages; the real ones stay out of sight. In Git Bash it needs a POSIX `TMPDIR` (`/c/Users/...`): the colon in `C:/...` breaks `cygpath -wp`, and 12 checks fail.
 - `sh tests/test-models.sh`: 68 checks of `models.py` on a made-up two-year case with known effects; needs pandas, numpy, statsmodels and scipy; about a minute.
 - `claude plugin validate --strict` on `cenk-overtime`, `cenk-overtime/skills` and the repository root.
 
@@ -39,7 +39,7 @@ Cenk's Claude Code plugin for employees who claim unpaid overtime. Public: githu
 
 1. Raise `version` in `cenk-overtime/.claude-plugin/plugin.json`; add a CHANGELOG entry.
 2. Run the checks, commit with `/cenk-workbench:commit`, push.
-3. Pack the release commit's `cenk-overtime/` (`.claude-plugin/plugin.json` at the zip root) with `git -c core.autocrlf=false archive --format=zip -o cenk-overtime.plugin <commit>:cenk-overtime`, check that no file in the zip contains a CR, then `gh release create vX.Y.Z cenk-overtime.plugin --latest`.
+3. Pack the release commit's `cenk-overtime/` (`.claude-plugin/plugin.json` at the zip root) with `git -c core.autocrlf=false archive --format=zip -o cenk-overtime.plugin <commit>:cenk-overtime`, check that no file in the zip contains a CR, then `gh release create vX.Y.Z cenk-overtime.plugin --target <full commit hash> --title "cenk-overtime X.Y.Z" --notes-file <notes> --latest`. The notes keep the previous release's opening and install text (`gh release view <tag>`), then list the changes in plain words.
 4. `claude plugin marketplace update cenk-overtime`, then `claude plugin update cenk-overtime@cenk-overtime` (Cenk's install uses this folder as a directory marketplace).
 
 ## Quirks
@@ -55,4 +55,5 @@ Cenk's Claude Code plugin for employees who claim unpaid overtime. Public: githu
 ## Open
 
 - The `.plugin` upload to claude.ai is untested since 0.2.0; Cowork is untested.
-- Not tested: macOS and Linux `awk`; `check-tools.py` on macOS and Linux, including the PEP 668 venv commands; `models.py` on a real case; the Tools step in a live session.
+- Not tested: macOS and Linux `awk`; `check-tools.py` on macOS and Linux, including the PEP 668 venv commands; the Tools step in a live session.
+- The workbench's `scripts/check-plugin.sh` FAILs on this plugin on the description budget (350 against the 1024-character rule under Layout), quoted skill names, and CHANGELOG place and format; all three predate 0.7.0.
