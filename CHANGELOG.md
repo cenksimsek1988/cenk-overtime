@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.8.1 - 2026-11-10
+
+Gaps the commit review of 0.8.0 found.
+
+- `court-package`, section 3: the other git fields of client repositories follow the commit subjects. The repository ships as its label in every output, branch names, tag names and messages and file paths as hashes or not at all, and addresses and local paths stay out. Those repositories' rows are scanned for the customer list and ticket prefixes. The pattern that found the author's commits stays out.
+- `court-package`, section 2: a mask decision ships with its id and group only, in the packaged tables and the report's annex; its reason stays in `master.sqlite`. A masked mail's subject is masked too, unless the review passed it.
+
 ## 0.8.0 - 2026-11-10
 
 Method gaps found by an independent audit of an evidence package.
