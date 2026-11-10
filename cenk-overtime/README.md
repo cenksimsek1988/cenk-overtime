@@ -56,7 +56,7 @@ Or type `/cenk-overtime:start`. It runs `collect`, `analyse` and `court-package`
 - After your yes, installs what is missing with winget (Windows), Homebrew (macOS) or apt (Debian, Ubuntu), Python packages with pip from PyPI, and text-recognition language data from the Tesseract project on GitHub.
 - Runs `skills/start/scripts/git-history.sh` with bash to read git history, and Python or `sqlite3` for the case database; `skills/start/scripts/contract-offset.py` records the contract zone's UTC offset for the day views.
 - Runs `skills/analyse/scripts/models.py` (pandas, statsmodels, scipy) on the case database for the regression checks.
-- For a large set of files, the privacy review and the final audit, Claude hands parts of the work to subagents, each on a named Claude model.
+- For a large set of files, the privacy review, the final audit and the check of its fixes, Claude hands parts of the work to subagents, each on a named Claude model.
 - For the package, Claude writes a small Python tool that rebuilds every number, runs it on your computer, and puts it in the package.
 - Reads only the files and folders you agree to. It never opens password managers, vaults or key folders.
 - Network: `git clone` of the employer repositories you name, with your own git login, into `~/overtime-clones/` on your computer. Each clone is deleted after reading, unless you ask to keep it. Program and package downloads after your yes; no case data goes with them.

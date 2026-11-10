@@ -21,7 +21,7 @@ The names are Claude Code's model aliases. As of November 2026: `haiku` is Claud
 | Gap reader: only for a gap the critic names | `sonnet` | `medium` | Reader work again, narrower |
 
 - No second full reader per source: the checker's recount and sample replace it, in a fraction of the time.
-- Seen (Nov 2026): a run with every agent on the strongest model at `max`, a second full reader per source, and stages that waited for each other took hours. `xhigh` stays for the one check nothing follows: the audit in `cenk-overtime:court-package`.
+- Seen (Nov 2026): a run with every agent on the strongest model at `max`, a second full reader per source, and stages that waited for each other took hours. `xhigh` stays for the one check of the whole package: the audit in `cenk-overtime:court-package`.
 
 ## Briefs
 

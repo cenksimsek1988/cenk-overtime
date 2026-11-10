@@ -32,7 +32,7 @@ Cenk's Claude Code plugin for employees who claim unpaid overtime. Public: githu
 
 - `bash tests/test-git-history.sh`: 70 checks on throwaway repositories in the temp folder (also contract-offset.py); `CASE_DIR=<new folder>` puts the case folder elsewhere, such as Google Drive. It loads through `sqlite3` when that is on PATH, else through Python: run it once with each.
 - `sh tests/test-check-tools.sh`: 30 checks with stub programs and stub Python packages; the real ones stay out of sight.
-- `sh tests/test-models.sh`: 67 checks of `models.py` on a made-up two-year case with known effects; needs pandas, numpy, statsmodels and scipy; about a minute.
+- `sh tests/test-models.sh`: 68 checks of `models.py` on a made-up two-year case with known effects; needs pandas, numpy, statsmodels and scipy; about a minute.
 - `claude plugin validate --strict` on `cenk-overtime`, `cenk-overtime/skills` and the repository root.
 
 ## Release

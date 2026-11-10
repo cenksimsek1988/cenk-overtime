@@ -131,7 +131,7 @@ CREATE TABLE IF NOT EXISTS decisions (
 -- night trace counts for the evening before.
 CREATE TABLE IF NOT EXISTS days (
   day           TEXT PRIMARY KEY,           -- YYYY-MM-DD
-  off           TEXT,                       -- holiday, leave or sick; left out of the models. NULL on other days
+  off           TEXT,                       -- off or holiday, never the reason; left out of the models. NULL on other days
   phase         TEXT,                       -- employer or role period the person named; NULL when there is one
   ooh_traces    INTEGER NOT NULL,           -- counted out-of-hours traces of the core tier: messages, mail, calls, commits
   ooh_chat      INTEGER,                    -- of which chat messages

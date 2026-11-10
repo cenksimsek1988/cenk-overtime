@@ -577,7 +577,7 @@ def write_model(out_dir, name, model, d):
         "tests": sum(1 for r in model["results"] if r["estimate"] is not None or r["p_value"] is not None),
         "results": model["results"],
         "diagnostics": model["diagnostics"],
-        "rerun": "python models.py --db master.sqlite --out <new folder> --model " + name,
+        "rerun": "python models.py --db <copy of the database> --out <new folder> --model " + name,
     }
     with open(base + ".json", "w", encoding="utf-8", newline="\n") as f:
         json.dump(summary, f, indent=2, ensure_ascii=False)
@@ -608,7 +608,7 @@ def copy_script(out_dir):
 
 def main():
     parser = argparse.ArgumentParser(description="Regression checks on the daily table of an overtime case.")
-    parser.add_argument("--db", required=True, help="the case's master.sqlite")
+    parser.add_argument("--db", required=True, help="the case's master.sqlite, or a copy of it: its model_results table is rewritten")
     parser.add_argument("--out", required=True, help="folder for the model files, such as work/queries")
     parser.add_argument("--model", action="append", choices=MODELS, help="run only this model (repeatable)")
     args = parser.parse_args()

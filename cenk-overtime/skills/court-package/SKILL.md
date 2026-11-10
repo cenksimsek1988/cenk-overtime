@@ -26,15 +26,21 @@ Rescan after every scope change (new chats, git) and scan every output format, n
 ## 2. Private life
 
 1. Agree the policy with the person first. Default: group A = their own non-work private matters (masked on request); group B = anyone else's private information (health, family, relationships, bereavement, legal matters, finances, gossip) = always masked. The person may choose to keep their own items that support the claim (e.g. own illness or therapy showing strain).
-2. Read every non-empty message, not keyword hits. Split into chunks of ~800 messages; brief parallel reviewers (subagents) with one written brief: categories, what not to flag (work content, complaints about workload, idioms, small talk), output `{id, group, topic}` only, never quoted text, plus up to 10 unsure ids. Reviewers: model `opus`, effort `high`. Telling private matters from work is legally sensitive judgment, often in more than one language, and a miss puts someone's private life in front of the employer and the court.
+   - Group B also covers get-well and condolence wishes. Example: `Get well soon, Ada`.
+   - Group B also covers job candidates: names, CV file names, contact cards, pay expectations. Example: `Ada_Lovelace_CV.pdf`, `asks for 4000 a month`.
+   - Group B also covers colleagues' pay, job search, resignation and character judgments. Example: `Bob has resigned`, `Bob is useless`.
+   - Team-management content stays as work content: who does what, a hiring plan, a leave plan. Record that as a decision. Example: `Ada takes billing`, `two testers by June`, `Bob is off next week`.
+   - The person's own pay, raises, shares, job offers and own lawyer's advice are group A unless they decide otherwise. Ask, or mask by default and tell them and the lawyer; the originals stay in `for-lawyer/raw/`. Example: `my raise came through`, `my lawyer says wait`.
+2. Read every non-empty message, not keyword hits. Split into chunks of ~800 messages; brief parallel reviewers (subagents) with one written brief: categories, what not to flag (work content, team-management content, complaints about workload, idioms, small talk), output `{id, group, topic}` only, never quoted text, plus up to 10 unsure ids. Reviewers: model `opus`, effort `high`. Telling private matters from work is legally sensitive judgment, often in more than one language, and a miss puts someone's private life in front of the employer and the court.
 3. Merge, then decide borderline cases yourself with context: keep items that help the claim per the person's policy; mask items that could be used against them (job search, side-business plans for evenings/weekends, alcohol/drugs, immigration status, address/finances) and tell the person these exist so the lawyer can decide.
-4. Run keyword safety-net sweeps after the review (immigration/visa/citizenship, legal/court, health of others, politics/religion, money, job offers) and check hits in context.
+4. Run keyword safety-net sweeps after the review (immigration/visa/citizenship, legal/court, health of others, politics/religion, money, job offers, get-well phrases) and check hits in context. Also sweep attachment lines whose file name is a person's name (.vcf, .pdf, .docx) and login names of customer systems. Example: `get well soon`, `Attachment: Ada_Lovelace.vcf`, `acme_admin`.
 5. Check messages excluded from review (empty or already masked) and old placeholders from earlier policies.
 6. Replace masked text with a fixed placeholder; keep time, ids, chat; the message still counts. Store `[{id, group}]` in the tool folder so the tool reproduces the masks; reasons go to the decisions table.
 7. Never publish counts by private topic; report only the total and the A/B split. Do not mask unflattering work content (it looks like cherry-picking); flag it to the person instead.
-8. Verify: for every masked id, probe the original's own text and quoted text (first 40 chars) in every output; zero hits required.
+8. Verify: for every masked id, probe the original's own text and quoted text in every output, with several windows per message; zero hits required. Skip a mail subject line only when a kept mail shares it and the review passed that subject. Example: 40 chars from the start, the middle and the end of each message; a hit on `Re: Release plan`, which a kept mail also carries, is no leak.
+9. The reason for a day off never ships: not in a table value, key, comment or identifier. Scan every output for reason words in the case's languages: the formats of section 1, plus sheet names, column names, JSON keys, file names, scripts and `sqlite_master`, which keeps SQL comments (a hit there: take the word out of the tool's `CREATE TABLE`). Check hits in context; a reason in a message the person chose to keep (step 1) stays. Example: `days.off` holds `off` or `holiday`, never `sick`; no column `sick_days`; scan words `sick`, `doctor`, `funeral`.
 
-Customer names stay out of the narrative PDFs (scan for the known list); the package is marked confidential (lawyer, court, expert).
+Customer names stay out of the narrative PDFs: scan for the known list, which includes the main client and the client-project repository names. Example: `Acme` is never named, and `acme-portal` appears as `client-repo-1`. The package is marked confidential (lawyer, court, expert).
 
 ## 3. Package layout
 
@@ -49,15 +55,28 @@ HASHES_SHA256.txt
 README.txt               AI notice (section 4), contents, confidentiality, verification, hash deposit
 ```
 
+Git data in the package:
+- Commit subjects of client repositories ship only as SHA-256 hashes: they name client tickets and security bugs. The tool counts events on the hash; a tag derived from a subject ships as its own field. A report may quote a subject when code checks the quote against its hash. Example: `ACME-12 fix login bypass` ships as `sha256:ab12...` in `git_metadata.json` and every table.
+- Git author identities are generic labels. Example: `author-1`, never a name or an email address.
+
 Build each version in `work/package/v<N>/` of the case folder, never in `for-lawyer/`, which the lawyers see as soon as a file lands there. Section 7 delivers the finished version.
 
 ## 4. Reports (HTML -> PDF with Playwright/Chromium)
 
 AI notice, in the report's language, under the title of `1_Summary.pdf` and `2_Report.pdf` and at the top of `README.txt`: "Prepared with the help of AI from the employee's own records. To be checked by a lawyer before it is filed or relied on." Keep it in every version delivered to the person and the lawyer.
 
-Summary: title with period and person; data source and collection date; raw-data hash; 6 key-number tiles (each with the all-chats figure in brackets); findings bullets, each with one quoted example and its date/time and a reference to the report section; a box "What this report does not show" (no pay calculation, estimates only, traceless work invisible, content not judged message by message); weekly chart; core vs all-chats table; time-estimate table (weekday/weekend/total); event-day chart and table; period-group table.
+Summary: title with period and person; data source and collection date; raw-data hash and integrity date; 6 key-number tiles (each with the all-chats figure in brackets; exception below); findings bullets, each with one quoted example and its date/time and a reference to the report section; a box "What this report does not show" (no pay calculation, estimates only, traceless work invisible, content not judged message by message, commit times unverified without the server's records); weekly chart; core vs all-chats table; time-estimate table (weekday, Saturday, Sunday, public holiday, total); event-day chart and table; period-group table.
 
 Full report: 1 summary, 2 data/definitions/method (collection, windows, two clocks, tense model, version completion, masking), 3 distribution (bands, heat map, end-time histogram, sensitivity, all chats, time estimates, workload trend and phases), 4 release/patch relation (event study, year table, regression checks on event days and weekends, release list with evidence ids, cycles, prod/patch), 5 git (tiles, weekly commits with anchors, independent comparison, agreement of the clocks, repos table, excluded tags), 6 tool/AI work if relevant, 7 validation table and limitations, annexes: every period, evidence for every event, manual decisions, data dictionary.
+
+Both reports, wherever the item appears:
+- Saturday, Sunday and public-holiday hours are separate rows, split at report build by the day of each period (`days.off` = `holiday` marks public holidays), and each hour is in one row. Example: weekday 120 h, Saturday 30 h, Sunday 12 h, public holiday 6 h, total 168 h; a public holiday on a Saturday goes in the public-holiday row.
+- Say what an evening past midnight is: traces after midnight count to the evening before, and with a first trace after midnight it may be an early start. Example: "First trace 02:10, last 03:05: counted as Monday's evening; it may be an early start on Tuesday."
+- A non-core tier that is only non-work mail is not shown as an all-chats figure on the tiles. Example: the only traces outside core are mails to a private address: the tile says `120 evenings`, not `120 evenings (all chats: 150)`.
+- Merge commits and bursts of identical commits are reported apart from the other commits. Example: 200 commits = 170 others + 20 merges + 10 in 2 bursts (`sync`, 5 times in 2 minutes).
+- Commit times come from the author's own clock and are unverified without the server's records. Example: "Commit times come from the employee's computer; the employer's server push logs would confirm them."
+- State the integrity date, the day the last raw file was hashed (the latest `evidence_files.received_at`): a hash taken long after collection proves nothing about the time before. Example: "Collected in week 1, hashed in week 12: the hashes show no change since week 12 and say nothing about weeks 1 to 12."
+- A phase name stays neutral, here and in `days.phase`, which the model readings quote: a role label such as a manager title can serve as the other side's argument. Example: `Phase 2`, not `Shift supervisor period`.
 
 Model results (`model_results`, from `cenk-overtime:analyse`, section 8): each with its reading in the report's language and the same numbers, the method in one line, and what it does not show. A model result goes into the summary only with its interval and one clause on what it does not show.
 
@@ -75,13 +94,14 @@ Write with openpyxl; the summary sheet uses formulas (COUNTIF/COUNTIFS on the da
 - The packaged tool rebuilds every table and report from 5_Raw_Data (+ git metadata) into a new folder next to the package; it never writes into the package. Build the delivered outputs by running the packaged tool itself on the packaged raw data.
 - Standard library only for the core; openpyxl and Playwright optional. Set `sys.dont_write_bytecode = True` and run with `-I -B`; delete `__pycache__` before hashing.
 - Reproduction check before delivery: copy the package, run the tool, compare every SQLite table (ignore the generation timestamp).
-- The tool also rebuilds `days`. `6_Method_and_Tool/models/` holds `models.py` and its `model-*` files from `work/queries/`; on the copy, `python models.py --db ../../4_Database/db.sqlite --out <new folder>` must give the same `model-*.json`. HOW_TO_USE.txt gives that command and the library versions in the JSON files (pandas, numpy, statsmodels, scipy); the core tool stays standard library only.
+- The tool also rebuilds `days`. `6_Method_and_Tool/models/` holds `models.py` and its `model-*` files from `work/queries/`. `models.py` writes `model_results` into the database it is given, so a rerun starts with a copy outside the package. Example: copy `4_Database/db.sqlite` to a new folder `../rerun/`; then `python 6_Method_and_Tool/models/models.py --db ../rerun/db.sqlite --out ../rerun/models` must give the same `model-*.json`, and `HASHES_SHA256.txt` still passes. HOW_TO_USE.txt gives these commands and the library versions in the JSON files (pandas, numpy, statsmodels, scipy); the core tool stays standard library only.
 - `sha256sum -c HASHES_SHA256.txt` must pass; compute the zip's SHA-256 and tell the person to deposit it the same day (email to self and lawyer, notary or timestamp service).
 - Sample queries: run every query in sample_queries.sql against the final DB; examples must return rows.
 
 ## 7. Audit and delivery
 
-- Before delivery, have an independent reviewer (fresh subagent) audit: credentials, quotes vs data, numbers vs DB, wording/overclaims, event dating, comparisons, model readings (no causal words, intervals and limits stated), labels, limitations. Fix everything found and rebuild. Auditor: model `fable` (`opus` where Fable is not available), effort `xhigh`: it runs once, it is the last check before the lawyer, and nothing checks it afterwards.
+- Before delivery, have an independent reviewer (fresh subagent) audit: credentials, quotes vs data, numbers vs DB, wording/overclaims, event dating, comparisons, model readings (no causal words, intervals and limits stated), labels, limitations. Fix everything found and rebuild. Auditor: model `fable` (`opus` where Fable is not available), effort `xhigh`: it runs once, and it is the only check of the whole package before the lawyer.
+- After the audit and the fixes, one more pass before delivery: a fresh subagent checks each fixed finding in the rebuilt package. A finding that is not fixed goes back to fix, rebuild and check. Verifier: model `opus`, effort `high`: it checks the audit's findings only. Example: finding 7, "quote differs from the database": it compares the quote in the rebuilt PDF with the stored text and writes `fixed` or `not fixed`.
 - The package is a draft for the person's lawyer. Tell the person not to file it, or send it to the employer or the court, before the lawyer has checked it.
 - Deliver into `for-lawyer/`: the zip, and next to it 1_Summary.pdf, 2_Report.pdf and 3_Data_Tables.xlsx, so the lawyer can read them without unzipping. Give the zip hash, and update `for-lawyer/README.md`.
 - Number versions; state that the new package replaces earlier ones, and move the earlier ones from `for-lawyer/` to `work/package/` unless the person wants them kept there. An earlier version with unmasked data leaves `for-lawyer/` at once: tell the person that the lawyers may have downloaded it already and must not file or pass it on, and not to share copies of it themselves.

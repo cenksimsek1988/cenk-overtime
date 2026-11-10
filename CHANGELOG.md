@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.8.0 - 2026-11-10
+
+Method gaps found by an independent audit of an evidence package.
+
+- `court-package`, section 2: group B also covers get-well and condolence wishes, job candidates (names, CV file names, contact cards, pay expectations), and colleagues' pay, job search, resignation and character judgments. Team-management content stays as work content and is recorded as a decision. The person's own pay, raises, shares, job offers and own lawyer's advice are group A unless they decide otherwise: ask, or mask by default and tell them and the lawyer.
+- `court-package`, section 2: the safety-net sweep also searches get-well phrases, attachment lines whose file name is a person's name, and login names of customer systems. Mask probes use several windows per message and skip mail subject lines that other mails share. The reason for a day off never ships, and every output is scanned for reason words. The customer-name scan includes the main client and client-project repository names.
+- `court-package`, section 3: commit subjects of client repositories ship only as SHA-256 hashes, except a quoted subject checked by its hash, and git authors ship as generic labels.
+- `court-package`, section 4: Saturday, Sunday and public-holiday hours are separate rows. The reports say what an evening past midnight is, that commit times come from the author's own clock and are unverified without the server's records, and the integrity date. Merge commits and bursts of identical commits are reported apart. A non-core tier that is only non-work mail is not shown as an all-chats figure on the tiles. A phase name stays neutral.
+- `court-package`, section 6: a rerun of the models starts with a copy of the database outside the package, because `models.py` writes to the database it is given. The `rerun` line in each `model-*.json` and the `--db` help of `models.py` say so.
+- `court-package`, section 7: after the audit and the fixes, a fresh subagent on `opus` at `high` checks each fixed finding before delivery.
+- `analyse` and `schema.sql`: `days.off` holds `off` or `holiday`, never the reason, and phases get neutral names, because `days` and the model files ship. A case database made earlier keeps its values until they are changed and the models run again.
+- Tests: the `rerun` line asks for a copy.
+
 ## 0.7.0 - 2026-11-10
 
 Method gaps found by an independent check of an analysis.

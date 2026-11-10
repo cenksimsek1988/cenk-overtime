@@ -179,6 +179,7 @@ run "$(native "$W/out/models.py")" --db "$(native "$DB")" --out "$(native "$W/ex
 check 'the copy reruns' same "$(cmp -s "$W/out/model-clocks.json" "$W/expert/model-clocks.json" && echo same || echo different)"
 check 'one model only' 'model-clocks.csv model-clocks.json model-clocks.sql model-clocks.txt models.py' "$(ls "$W/expert" | sort | tr '\n' ' ' | sed 's/ $//')"
 check 'rerun keeps one row per result' "$(j event-days "len(m['results'])")" "$(q "select count(*) from model_results where model = 'event-days'")"
+check 'the rerun line asks for a copy of the database' True "$(j event-days "'--db <copy of the database> ' in m['rerun']")"
 
 # edit SQL COPY: COPY is the case database with SQL applied to it.
 edit() {
