@@ -5,7 +5,7 @@ description: "Starts an unpaid overtime or extra-shift claim, or picks up one yo
 
 # Overtime evidence: start here
 
-The single entry point for an overtime case. This skill owns the choice of case, the intake, the case folder, sharing its `for-lawyer/` folder with the lawyers, the master database and git history. The detail of each later stage lives in three skills of this plugin, used in this order:
+The single entry point for an overtime case. This skill owns the choice of case, the intake, the case folder, sharing its evidence folder with the lawyers, the master database and git history. The detail of each later stage lives in three skills of this plugin, used in this order:
 
 1. `cenk-overtime:collect`: getting the remaining traces and normalizing them.
 2. `cenk-overtime:analyse`: definitions, counts, hour estimates, release and incident relation.
@@ -33,18 +33,20 @@ At the start of every session, before section 0, run `scripts/check-tools.py` in
 
 ## 0. Which case
 
-Before the intake, find the cases the person already has: the folders in `My Drive/overtime-cases/` of every Google Drive account on the computer (section 3 says where each account appears). For each case, read only its `README.md` and, if `master.sqlite` exists, its `case_info` table. Do not open `for-lawyer/`, `git/` or `work/` yet, nor `originals/` and `outputs/` in a case in the old layout.
+Before the intake, find the cases the person already has, in every Google Drive account on the computer (section 3 says where each account appears). A case is a folder two levels below `My Drive` (`My Drive/<cases folder>/<case>/`) that holds `master.sqlite` or its evidence folder `<case>-evidence/`; cases from earlier versions hold `for-lawyer/`, `originals/` or `outputs/` instead. Look at folder names only: other folders there, such as cases this plugin did not make, are never opened. For each case, read only its `README.md` and, if `master.sqlite` exists, its `case_info` table. Do not open the evidence folder, `git/` or `work/` yet, nor `for-lawyer/`, `originals/` and `outputs/`.
 
 In the first message, list the cases found (name, account, last change) and ask whether to continue one of them or start a new one. If none is found, say so and go on to the intake.
 
 - **New case:** sections 1 to 7 in order.
 - **Existing case:** show what `case_info` and `README.md` already answer, ask the intake questions that are still open (in one message, as in section 1), and save the answers in `case_info`. Then go on from the first of sections 3 to 7 that is not done, for example section 4 when there is no `master.sqlite` yet. Files from earlier work that do not fit the layout in section 3 stay where they are: ask before moving or redoing any of them.
-- **Case in the old layout** (`originals/` or `outputs/`, no `for-lawyer/`; made before version 0.5.0): before anything else, offer to move it to the layout in section 3. List what moves where, and wait for the yes:
-  1. `originals/<source>/...` goes to `for-lawyer/raw/<source>/...`, with the same subfolders. `outputs/<name>.sql` goes to `work/queries/<name>.sql`. The other files in `outputs/` go to `for-lawyer/`, except those the person keeps in `work/`: drafts, earlier versions, anything unmasked.
-  2. Move, do not copy. Hash each file before and after the move: the two must match, and match `evidence_files.sha256` where the file has a row.
-  3. In `evidence_files`, set `case_path` to the new path and add the earlier one to `note`, after what `note` already holds (`case_path was originals/email/sent.mbox until 2026-11-06`). Without `master.sqlite`: create it (section 4), then record each moved file as in section 5, step 4, from what the case `README.md` says about it, with the earlier path in `note`; ask what the README does not say.
-  4. Write `for-lawyer/raw/hashes.txt` (section 5, step 5) and `for-lawyer/README.md` (section 3), update the case `README.md`, record the move in `decisions`, and remove `originals/` and `outputs/` once they are empty.
-  5. If the case folder was shared before (its `README.md` or `decisions` say so), the lawyers still see everything in it, database included. Tell the person; section 7, step 4 removes that access, and `for-lawyer/` is shared with the same lawyers instead.
+- **Case in an earlier layout** (`for-lawyer/` from versions 0.5.0 to 0.8, or `originals/` and `outputs/` from before 0.5.0): before anything else, offer to move it to the layout in section 3. List what moves where, and wait for the yes:
+  1. `for-lawyer/` is renamed `<case>-evidence/`, and its `raw/` becomes `4_Raw_Data/`; create `6_From_Lawyer/` in it. A rename inside Drive keeps the upload dates and the folder's shares. The summary, report, spreadsheet and zip at its top stay until `cenk-overtime:court-package` delivers a version in the new layout (its section 7).
+  2. Before 0.5.0: `originals/<source>/...` goes to `<case>-evidence/4_Raw_Data/<source>/...`, with the same subfolders. `outputs/<name>.sql` goes to `work/queries/<name>.sql`. The other files in `outputs/` go to the evidence folder's top, except those the person keeps in `work/`: drafts, earlier versions, anything unmasked.
+  3. When the person keeps their legal cases in another folder than the one holding this case, offer to move the case folder there. A move inside one Google account keeps upload dates and shares. A move to another account is a copy: new upload dates and no shares; copy, check every hash, and leave the original until the person deletes it.
+  4. Move, do not copy, except across accounts (step 3). Hash each file before and after the move: the two must match, and match `evidence_files.sha256` where the file has a row.
+  5. In `evidence_files`, set `case_path` to the new path and add the earlier one to `note`, after what `note` already holds (`case_path was for-lawyer/raw/email/sent.mbox until 2026-11-12`). Without `master.sqlite`: create it (section 4), then record each moved file as in section 5, step 4, from what the case `README.md` says about it, with the earlier path in `note`; ask what the README does not say.
+  6. Write `4_Raw_Data/hashes.txt` (section 5, step 5; its paths are relative to the folder, so a renamed `raw/` keeps the same lines) and the evidence folder's `README.md` (section 3), update the case `README.md`, record the move in `decisions`, and remove emptied folders.
+  7. If the case folder was shared before (its `README.md` or `decisions` say so), the lawyers still see everything in it, database included. Tell the person; section 7, step 4 removes that access, and the evidence folder is shared with the same lawyers instead.
 
 ## 1. Intake (one message)
 
@@ -57,7 +59,7 @@ For a new case, ask everything at once, in the person's language, and wait for t
 5. **Evidence:** do they already have all of it, some of it, or none and want help finding it?
 6. **Existing evidence:** where it is now (folders, drives, email attachments, phone exports).
 7. **Git:** did they write code or configuration? Local clones on their computer (paths) and repository URLs. For each URL: are they still allowed to access it (still employed, or written permission)?
-8. **Case folder:** which Google account to keep it in, and a short name for the case [`<employer>-<year the job ended>`]. It must be the person's own account, never the employer's Google Workspace or a Drive the employer manages: the folder holds their evidence, and its `for-lawyer/` folder will be shared with their lawyers.
+8. **Case folder:** which Google account to keep it in, the folder that holds the person's legal cases [`Legal cases`; an existing one may hold other cases, which this plugin never opens], and a short name for the case [`<employer>-<year the job ended>`]. It must be the person's own account, never the employer's Google Workspace or a Drive the employer manages: the folder holds their evidence, and its evidence folder will be shared with their lawyers.
 
 These answers also cover section 0 of `cenk-overtime:collect`: do not ask them again there. Save them in `case_info` (section 4), including `drive_account` and `case_folder`.
 
@@ -79,45 +81,50 @@ If the person has some or none of the evidence, go through the table for their j
 
 ## 3. Case folder in Google Drive
 
-Each case gets its own folder: `My Drive/overtime-cases/<case>/` in the person's Google Drive. Cases stay apart from each other and from this skill's files, and only a case's `for-lawyer/` folder is ever shared, so sharing one case shares nothing else.
+Each case gets its own folder, `My Drive/<cases folder>/<case>/`, in the person's Google Drive. The cases folder holds all the person's legal cases [`Legal cases`]; other folders in it, such as cases this plugin did not make, are never opened. Only the case's evidence folder, `<case>-evidence/`, is ever shared, so sharing one case shares nothing else. Its name starts with the case name because a lawyer's "Shared with me" lists folders by name only. Example: `acme-2024-evidence`.
 
 Find it on the computer through Google Drive for desktop, which shows each signed-in account:
 - Windows: as a drive letter, `X:\My Drive`. The drive's label is the account's email (Explorer, or `Get-PSDrive` in PowerShell).
 - macOS: `~/Library/CloudStorage/GoogleDrive-<email>/My Drive`.
 
-If several accounts appear, ask which one. If Google Drive for desktop is not installed, ask the person to install it and sign in with their own account; if they would rather not, create the folder on the computer and tell them to upload `for-lawyer/` to their Drive before sharing it. Paths here contain spaces (`My Drive`): quote them in every command.
+If several accounts appear, ask which one. If Google Drive for desktop is not installed, ask the person to install it and sign in with their own account; if they would rather not, create the folder on the computer and tell them to upload the evidence folder to their Drive before sharing it. Paths here contain spaces (`My Drive`): quote them in every command.
 
 Create this layout:
 
 ```
-<case>/
-  README.md          the plugin's record: layout, sources, decisions, shares (not shared)
-  master.sqlite      master database, section 4 (not shared)
-  git/<repo>/        git history tables written by the script, section 6 (not shared)
-  work/              normalized tables, scripts, scratch work (not shared)
-    queries/         <artifact>.sql: the query that built each artifact (section 4)
-  for-lawyer/        the only folder shared with the lawyers, as Viewer (section 7)
-    README.md        plain description for the lawyer
-    <artifacts>      summary, full report, spreadsheet, package (cenk-overtime:court-package)
-    raw/<source>/    evidence as received, with its own subfolders: never edited (section 5)
-    raw/hashes.txt   SHA-256 of every file in raw/, paths relative to raw/
+<cases folder>/          all the person's legal cases (not shared)
+  <case>/                the case folder (not shared)
+    README.md            the plugin's record: layout, sources, decisions, shares
+    master.sqlite        master database, section 4
+    git/<repo>/          git history tables written by the script, section 6
+    work/                normalized tables, scripts, scratch work, package builds
+      queries/           <artifact>.sql: the query that built each artifact (section 4)
+    <case>-evidence/     the evidence folder: the only folder shared with the lawyers (section 7)
+      README.md          start here: what each folder holds, in plain words
+      1_Summary/  2_Report/  3_Processed_Data/  5_Calculation/  HASHES_SHA256.txt
+                         the court package (cenk-overtime:court-package, section 3), once it is built
+      4_Raw_Data/<source>/   evidence as received, with its own subfolders: never edited (section 5)
+      4_Raw_Data/hashes.txt  SHA-256 of every file in 4_Raw_Data/, paths relative to it
+      6_From_Lawyer/     the lawyers' own documents (section 7)
 ```
 
 `<source>` is one of `email`, `teams`, `slack`, `whatsapp`, `calls`, `calendar`, `tracker`, `other`.
 
-Write both READMEs when the folder is created, and update them whenever something is added:
-- `README.md`: what each folder holds, where each piece of evidence came from, the decisions, and who `for-lawyer/` is shared with since when.
-- `for-lawyer/README.md`, in plain words and in the court's language: what each file and folder is; the sources in `raw/` with their file counts; that `raw/` holds the evidence unmasked and is confidential, and that the masked records built from it are in the package's `5_Raw_Data/`; how to check `hashes.txt` (macOS and Linux: `shasum -a 256 -c hashes.txt` in `raw/`; Windows PowerShell: `Get-FileHash -Algorithm SHA256 <file>`, compared with its line); the records only the employer holds, for the lawyer to request (section 2); the AI notice of `cenk-overtime:court-package`, section 4.
+Create `README.md`, `4_Raw_Data/` and `6_From_Lawyer/` in the evidence folder now; `cenk-overtime:court-package` creates the other parts when it delivers. The plugin never writes, moves or deletes anything in `6_From_Lawyer/`, and reads it only when the person asks; a document there that should become evidence comes in through section 5 as a copy.
 
-Everything in the case folder goes to Google's servers; only `for-lawyer/` goes to the lawyers. These stay on the computer only:
+Write both READMEs when the folder is created, and update them whenever something is added:
+- `README.md`: what each folder holds, where each piece of evidence came from, the decisions, and who the evidence folder is shared with since when.
+- The evidence folder's `README.md`, in plain words and in the court's language, opening with "start here": what each numbered folder holds and for whom, in reading order; the sources in `4_Raw_Data/` with their file counts; that `4_Raw_Data/` holds the evidence unmasked and is confidential, and that the masked records built from it are in `3_Processed_Data/`; how to check `hashes.txt` (macOS and Linux: `shasum -a 256 -c hashes.txt` in `4_Raw_Data/`; Windows PowerShell: `Get-FileHash -Algorithm SHA256 <file>`, compared with its line); that `6_From_Lawyer/` is for the lawyers' own documents; the records only the employer holds, for the lawyer to request (section 2); the AI notice of `cenk-overtime:court-package`, section 4. That skill's section 7 adds the package version and how to check `HASHES_SHA256.txt`.
+
+Everything in the case folder goes to Google's servers; only the evidence folder goes to the lawyers. These stay on the computer only:
 - git clones, in `~/overtime-clones/<case>/` (section 6): they hold the employer's source code;
 - the list of passwords found in messages, `secrets.json`, next to the clones (`cenk-overtime:court-package`, section 1);
 - the git script's temporary files, in the system temp folder.
 
 Because the folder syncs:
 - Write to `master.sqlite` from one computer at a time, and let Drive finish syncing before opening it on another.
-- Google Drive for desktop ignores the read-only flag, so the files in `for-lawyer/raw/` cannot be locked. Their SHA-256 hashes (`hashes.txt`, section 5) show that they were not changed; check them again before the package is built.
-- A file is in front of the lawyers as soon as it lands in `for-lawyer/`: only evidence as received (in `raw/`) and finished, masked artifacts go there. Drafts and unmasked outputs stay in `work/`.
+- Google Drive for desktop ignores the read-only flag, so the files in `4_Raw_Data/` cannot be locked. Their SHA-256 hashes (`hashes.txt`, section 5) show that they were not changed; check them again before the package is built.
+- A file is in front of the lawyers as soon as it lands in the evidence folder: only evidence as received (in `4_Raw_Data/`) and finished, masked artifacts go there. Drafts and unmasked outputs stay in `work/`.
 
 ## 4. Master database
 
@@ -126,7 +133,7 @@ Create `master.sqlite` from `scripts/schema.sql` in this skill's base directory,
 | Table | One row per |
 |---|---|
 | `case_info` | intake answer: `key`, `value`, `note` (`job`, `contract_hours`, `contract_days`, `contract_zone` as an IANA name, `lived_zone`, `window_from`, `window_to` as `YYYY-MM-DD`, `contract_offset_minutes` from `scripts/contract-offset.py`, `drive_account`, `case_folder`...) |
-| `evidence_files` | file in `for-lawyer/raw/`: source, original path, case path, SHA-256, size, original modification time, date received, method, note (earlier case paths too) |
+| `evidence_files` | file in `4_Raw_Data/`: source, original path, case path, SHA-256, size, original modification time, date received, method, note (earlier case paths too) |
 | `traces` | normalized record (`cenk-overtime:collect`, section 8), with `file_id` pointing to the evidence file it came from |
 | `repos` | repository source the script read: kind, remote host, commit counts (own and others) |
 | `commits` | own commit: hash, author, author time (with its offset, and in UTC), committer time, subject, files changed, lines added and deleted, binary files, merge flag |
@@ -140,7 +147,7 @@ Create `master.sqlite` from `scripts/schema.sql` in this skill's base directory,
 Views: `v_repo_summary`, `v_commits_by_day`, `v_commits_in_window` (uses `window_from` and `window_to` from `case_info`), `v_evidence_by_source`. Their days and times are the contract zone's, from `author_utc` and `contract_offset_minutes` (section 6, step 6).
 
 Rules:
-- Every new artifact (table, chart, report figure) is a query on `master.sqlite`. Save the query in `work/queries/`, named after the artifact (`work/queries/weekly-chart.sql` for `weekly-chart.svg`), so it can be rebuilt and checked. Queries stay out of `for-lawyer/`: the lawyers do not get the database.
+- Every new artifact (table, chart, report figure) is a query on `master.sqlite`. Save the query in `work/queries/`, named after the artifact (`work/queries/weekly-chart.sql` for `weekly-chart.svg`), so it can be rebuilt and checked. Queries stay out of the evidence folder: they run on the unmasked `master.sqlite`, which the lawyers do not get.
 - `cenk-overtime:analyse` and `cenk-overtime:court-package` read git data from these tables instead of extracting it again. Tables they add (periods, events, categories) go into the same database.
 - Every manual include, exclude or correction goes into `decisions` with its reason.
 - Only the person's own commits and identities are stored. Other authors appear only as a count per repository.
@@ -149,9 +156,9 @@ Rules:
 
 1. For each place the person named: list file names, sizes and dates; do not open contents yet. Never open password managers, vaults, key or credential folders.
 2. Agree with the person which files belong to the case.
-3. Copy each file into `for-lawyer/raw/<source>/`, keeping its name and the subfolders it has below the place the person named: names repeat across folders (a Slack export has a `2024-03-05.json` in every channel folder). Never overwrite a file in `raw/`: if a path is taken, add a subfolder named after the place the file came from. Leave the original where it is. Move only if the person asks for it; moving out of a synced folder (OneDrive, Google Drive, iCloud) also deletes it there, so say so first.
-4. Hash the original and the copy (`sha256sum`, or `shasum -a 256` on macOS); they must match. Record one `evidence_files` row per file, with `case_path` relative to the case folder (`for-lawyer/raw/slack/general/2024-03-05.json`) and `method` = `copied` or `moved`.
-5. Write `for-lawyer/raw/hashes.txt` again: one line per file in `raw/` except itself, `<sha256>  <path>`, the path relative to `raw/` with `/` between folders, sorted by path. Git Bash on Windows writes ` *` instead of the two spaces; both forms check. Then run `sha256sum -c hashes.txt` (`shasum -a 256 -c` on macOS) in `raw/`: every line must say OK.
+3. Copy each file into `<case>-evidence/4_Raw_Data/<source>/`, keeping its name and the subfolders it has below the place the person named: names repeat across folders (a Slack export has a `2024-03-05.json` in every channel folder). Never overwrite a file in `4_Raw_Data/`: if a path is taken, add a subfolder named after the place the file came from. Leave the original where it is. Move only if the person asks for it; moving out of a synced folder (OneDrive, Google Drive, iCloud) also deletes it there, so say so first.
+4. Hash the original and the copy (`sha256sum`, or `shasum -a 256` on macOS); they must match. Record one `evidence_files` row per file, with `case_path` relative to the case folder (`acme-2024-evidence/4_Raw_Data/slack/general/2024-03-05.json`) and `method` = `copied` or `moved`.
+5. Write `4_Raw_Data/hashes.txt` again: one line per file in `4_Raw_Data/` except itself, `<sha256>  <path>`, the path relative to `4_Raw_Data/` with `/` between folders, sorted by path. Git Bash on Windows writes ` *` instead of the two spaces; both forms check. Then run `sha256sum -c hashes.txt` (`shasum -a 256 -c` on macOS) in `4_Raw_Data/`: every line must say OK.
 6. Tell the person to email `hashes.txt` to themselves the same day: the dated email shows the files have not changed since.
 7. Update both READMEs (section 3), and report how many files came in per source (`v_evidence_by_source`).
 
@@ -187,13 +194,13 @@ What the numbers mean, for the limitations section:
 
 ## 7. Sharing with the lawyers
 
-Sharing is the person's decision: never share without their yes for each email address. Only `for-lawyer/` is shared: the lawyers get the evidence and the artifacts, not the plugin's database, git tables or working files, which they cannot use.
+Sharing is the person's decision: never share without their yes for each email address. Only the evidence folder is shared: the lawyers get the evidence and the artifacts, not the plugin's database, git tables or working files, which they cannot use.
 
 1. Offer it once sections 3 to 6 are done, or whenever the person asks.
-2. First say what the lawyers will see: everything in `for-lawyer/`, now and later. The evidence in `raw/` is unmasked: original files may contain passwords, tokens or keys that colleagues posted, and colleagues' private messages; masked versions come in the package from `cenk-overtime:court-package`. The case `README.md`, `master.sqlite`, `git/`, `work/` and the git clones are not shared.
-3. Ask for each lawyer's email address. Access is Viewer; Editor only if the person asks for it, after saying that editors can change or delete evidence.
-4. Share `for-lawyer/` itself, never the case folder, `overtime-cases` or anything above them: access to a folder covers everything in it. Before sharing, check that the case folder and `overtime-cases` are shared with nobody. If one is, tell the person and ask them to remove that access first: on drive.google.com, right-click the folder, Share, and choose Remove access next to each name.
-5. With a Google Drive connector, share through it only if it finds this case's `for-lawyer` folder, the one inside the case folder: every case has one. If it finds none, it is signed in to another account. Otherwise tell the person how: on drive.google.com, open the case folder, right-click `for-lawyer`, Share, enter the email, choose Viewer, Send.
+2. First say what the lawyers will see: everything in the evidence folder, now and later. The evidence in `4_Raw_Data/` is unmasked: original files may contain passwords, tokens or keys that colleagues posted, and colleagues' private messages; masked versions come in the package from `cenk-overtime:court-package`. The case `README.md`, `master.sqlite`, `git/`, `work/` and the git clones are not shared.
+3. Ask for each lawyer's email address. Access is Viewer on the evidence folder and Editor on its `6_From_Lawyer/`, so the lawyers can add their own documents: a personal Google account has no role that only adds files. Editor on the whole evidence folder only if the person asks for it, after saying that editors can change or delete evidence.
+4. Share the evidence folder and its `6_From_Lawyer/` themselves, never the case folder, the cases folder or anything above them: access to a folder covers everything in it. Before sharing, check that the case folder and the cases folder are shared with nobody. If one is, tell the person and ask them to remove that access first: on drive.google.com, right-click the folder, Share, and choose Remove access next to each name.
+5. With a Google Drive connector, share through it only if it finds this case's `<case>-evidence` folder, the one inside the case folder. If it finds none, it is signed in to another account. Otherwise tell the person how: on drive.google.com, open the case folder, right-click `<case>-evidence`, Share, enter the email, choose Viewer, Send; then open it, right-click `6_From_Lawyer`, Share, choose Editor, Send.
 6. Record each share in `decisions` (who, access, date) and in the case `README.md`.
 
 ## 8. Then

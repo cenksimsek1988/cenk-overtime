@@ -2,7 +2,7 @@
 
 For employees who worked unpaid overtime or extra shifts and want to claim it from their employer.
 
-What you get: a case folder in your own Google Drive, your overtime hours counted from your own work traces (sent email, work chat, phone, calendar, git), weekday and weekend apart, and an evidence report for your lawyer to check before anything is filed. The report says that it was prepared with the help of AI. Your lawyer gets one folder of the case, `for-lawyer`: your evidence as received and the reports.
+What you get: a case folder in your own Google Drive, your overtime hours counted from your own work traces (sent email, work chat, phone, calendar, git), weekday and weekend apart, and an evidence report for your lawyer to check before anything is filed. The report says that it was prepared with the help of AI. Your lawyer gets one folder of the case, `<case>-evidence`: your evidence as received and the reports, as plain folders with no zip.
 
 Not legal advice. What you may collect and use depends on your country and contract, so ask a lawyer, especially before accessing employer systems after your job has ended.
 
@@ -59,8 +59,8 @@ The plugin has no hooks, servers or tracking, and sends nothing to its author. Y
 
 - Network: it clones the employer repositories you name, with your own git login, into `overtime-clones` in your home folder, and deletes each clone after the git history is read. After your yes, it downloads free programs and Python packages from their official sources (winget, Homebrew, apt, PyPI, the Tesseract project); no case data goes with them.
 - Your case folder syncs to Google Drive through Google Drive for desktop.
-- Connectors you already have (Microsoft 365, Gmail, Google Drive) are used with your sign-in, to search your sent messages or to share the case's `for-lawyer` folder.
-- Only the `for-lawyer` folder is shared, and only after your yes for each email address. The case database, git tables and working files stay unshared.
+- Connectors you already have (Microsoft 365, Gmail, Google Drive) are used with your sign-in, to search your sent messages or to share the case's evidence folder.
+- Only the evidence folder is shared, and only after your yes for each email address. The case database, git tables and working files stay unshared.
 
 The full list of what it runs, reads and sends is in [cenk-overtime/README.md](cenk-overtime/README.md); [PRIVACY.md](PRIVACY.md) says who sees your data and how to delete it. Report security problems privately as [SECURITY.md](SECURITY.md) says.
 

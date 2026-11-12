@@ -23,7 +23,7 @@ Not legal advice. Before exporting anything from employer systems, tell the pers
 - Collect what the person **sent or did**, not what they received.
 - Keep originals untouched; work on copies. Hash originals (SHA-256) the day they are collected and tell the person to email the hashes to themselves.
 - Save raw results per query/window before any processing, so collection can be audited.
-- In a case folder from `cenk-overtime:start`: evidence as received (exports, each window's raw result) goes into `for-lawyer/raw/<source>/` through its section 5, with hashes. Everything derived (window lists, merges, collection notes, the normalized table) goes into `work/` or `master.sqlite`, which are never shared.
+- In a case folder from `cenk-overtime:start`: evidence as received (exports, each window's raw result) goes into `4_Raw_Data/<source>/` of the case's evidence folder through its section 5, with hashes. Everything derived (window lists, merges, collection notes, the normalized table) goes into `work/` or `master.sqlite`, which are never shared.
 - Never print secrets found in data back to the user; never copy source code anywhere.
 
 ## 2. Sources and how to get them
@@ -75,7 +75,7 @@ git -C REPO for-each-ref refs/heads refs/remotes --format='%(refname)%1f%(refnam
 
 ## 5. Reading files
 
-Evidence in `for-lawyer/raw/` is read, never changed: every derived file goes to `work/`. Use the programs and libraries from the Tools section of `cenk-overtime:start`, never a hand-written unzip and XML parse of .docx or .xlsx, or a PDF parser of your own. Run Python with the interpreter the tools check named.
+Evidence in `4_Raw_Data/` is read, never changed: every derived file goes to `work/`. Use the programs and libraries from the Tools section of `cenk-overtime:start`, never a hand-written unzip and XML parse of .docx or .xlsx, or a PDF parser of your own. Run Python with the interpreter the tools check named.
 
 - PDF text: PyMuPDF, `doc = pymupdf.open(path)`, then `page.get_text()` per page; `doc.page_count`; `doc.metadata` has the creation and change dates, by the producer's clock.
 - PDF tables (payslips, timesheets): pdfplumber, `page.extract_tables()`; check the totals against the page text.
@@ -87,7 +87,7 @@ Evidence in `for-lawyer/raw/` is read, never changed: every derived file goes to
 - Mail: MBOX (also Google Takeout) with Python's `mailbox.mbox(path)`, headers only: `Date`, `From`, `To`, `Message-ID`, `X-Gmail-Labels` (Takeout marks sent mail with `Sent`). EML with `email.message_from_binary_file(f, policy=email.policy.default)`.
 - Images and screenshots: Pillow, `Image.open(path).getexif().get(36867)`, the time taken; chat apps often strip it. Text: Tesseract, as for scans.
 - Screen recordings and videos: `ffprobe -v error -show_entries format=duration:format_tags=creation_time -of json <file>`. Frames every 5 s: `ffmpeg -i <file> -vf fps=1/5 work/frames/%05d.png`; at scene changes: `ffmpeg -i <file> -vf "select='gt(scene,0.3)'" -fps_mode vfr work/frames/%05d.png`. Then Tesseract, or look at the frames. A frame's clock time is creation_time plus its offset only when the file has a creation_time: say which.
-- SQLite files (app backups): open a copy in `work/`, never the file in `raw/`: opening one can write `-wal` and `-shm` files beside it.
+- SQLite files (app backups): open a copy in `work/`, never the file in `4_Raw_Data/`: opening one can write `-wal` and `-shm` files beside it.
 - WhatsApp and other chat exports: section 7.
 
 ## 6. Many files at once
@@ -122,7 +122,7 @@ One record per trace:
 - Replies: split `Author  quoted text  own text` and classify only the person's own words. If the split fails, flag it.
 - 1:1 chats without names: in a 1:1, every quoted author who is not the person is the other participant -> infer the name, mark it as inferred.
 - Exclude self-notes chats (e.g. Teams `48:notes`), bots and drafts; list them as excluded.
-- Keep the full unmasked table only in the private workspace (`master.sqlite` and `work/` of the case folder), never in `for-lawyer/`; masking happens before anything is shared (see `cenk-overtime:court-package`).
+- Keep the full unmasked table only in the private workspace (`master.sqlite` and `work/` of the case folder), never in the evidence folder; masking happens before anything is shared (see `cenk-overtime:court-package`).
 
 ## 9. Hand-off checklist
 

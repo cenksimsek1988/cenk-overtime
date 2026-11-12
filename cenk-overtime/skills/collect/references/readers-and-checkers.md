@@ -25,7 +25,7 @@ The names are Claude Code's model aliases. As of November 2026: `haiku` is Claud
 
 ## Briefs
 
-- Reader: the files (paths under `for-lawyer/raw/`), the person's identities, the window, the columns of `traces` (section 8), "own sent messages and own actions only", "never print a secret". It writes rows to `work/readers/<source>/` and reports: files read, rows, first and last date, own rows against others, files it could not read and why.
+- Reader: the files (paths under `4_Raw_Data/`), the person's identities, the window, the columns of `traces` (section 8), "own sent messages and own actions only", "never print a secret". It writes rows to `work/readers/<source>/` and reports: files read, rows, first and last date, own rows against others, files it could not read and why.
 - Checker: the reader's report, its output files and the original files, not the reader's reasoning. It recounts the rows and the first and last dates by another method (another library, or a plain line count), compares 20 random rows with the original records, and lists every mismatch with its ids.
 - Merge: every reader's report and every checker's mismatch list. It writes one result per source: counts, open mismatches, files not read.
 - Critic: the merge and the list in `evidence_files`. It names what is missing (a source, a year, a format), what is counted twice, and claims that go beyond the data.

@@ -13,13 +13,13 @@ Not legal advice. The plugin organises your own records and counts hours. It doe
 
 - Asks about your job, contract hours, the period to count and the evidence you already have.
 - Works out which free programs it needs to read your documents and calculate, and installs them from their official sources after your yes.
-- Creates a case folder in your own Google Drive, never your employer's. You share one folder of it with your lawyer, `for-lawyer`: your evidence as received and the reports.
-- Copies your evidence into `for-lawyer/raw/` unchanged, with its subfolders, and lists a SHA-256 hash of each file in `hashes.txt`.
+- Creates a case folder in your own Google Drive, never your employer's, inside one folder for all your legal cases. You share one folder of it with your lawyer, `<case>-evidence`: your evidence as received and the reports, plus a folder where your lawyer can add documents.
+- Copies your evidence into `<case>-evidence/4_Raw_Data/` unchanged, with its subfolders, and lists a SHA-256 hash of each file in `hashes.txt`.
 - Reads the git history of the employer repositories you name, and keeps only your own commits.
 - Collects what you sent or did: sent email, work chat, WhatsApp exports, calls, calendar.
 - Counts your evenings, nights, mornings and weekends, and gives a low and a high estimate of the hours, weekday and weekend apart.
 - Tests the patterns with standard regression models (more out-of-hours work on release days, weekend work near releases, the load over the years), and explains each result in plain words, with what it does not show.
-- Builds a package for your lawyer: a short summary, a full report, a spreadsheet, the data, and a tool that rebuilds every number. Passwords and private life are masked first.
+- Builds a package for your lawyer as plain folders, no zip: a summary anyone can follow with plus, minus, times and divide, a full report, the processed data, and a method document like a whitepaper with a tool that rebuilds every number. Passwords and private life are masked first.
 - Marks the package as prepared with the help of AI, for your lawyer to check before anything is filed.
 
 ## What it does not do
@@ -30,7 +30,7 @@ Not legal advice. The plugin organises your own records and counts hours. It doe
 - It asks whether you may still access each employer repository, and clones it only after you confirm.
 - Before any export from employer systems, it tells you to check with a lawyer what you may use.
 - It never puts your employer's source code in the case folder or the package.
-- It shares only the `for-lawyer` folder, and only after your yes for each email address. The case database, git tables and working files are not shared.
+- It shares only the case's evidence folder, and only after your yes for each email address. The case database, git tables and working files are not shared.
 - It sends nothing to its author: no servers, no hooks, no tracking.
 - It does not work in claude.ai chat: it needs your files, git and a shell.
 
@@ -61,7 +61,7 @@ Or type `/cenk-overtime:start`. It runs `collect`, `analyse` and `court-package`
 - Reads only the files and folders you agree to. It never opens password managers, vaults or key folders.
 - Network: `git clone` of the employer repositories you name, with your own git login, into `~/overtime-clones/` on your computer. Each clone is deleted after reading, unless you ask to keep it. Program and package downloads after your yes; no case data goes with them.
 - Your case folder syncs to your Google Drive through Google Drive for desktop.
-- If you have Microsoft 365, Gmail or Google Drive connected, Claude uses them with your sign-in: to search your sent messages, or to share the `for-lawyer` folder after your yes.
+- If you have Microsoft 365, Gmail or Google Drive connected, Claude uses them with your sign-in: to search your sent messages, or to share the case's evidence folder after your yes.
 - Passwords found in your messages are listed in a file on your computer, outside the case folder, used only to mask them, and deleted when you say the package is final.
 - Claude processes what it reads in your session, as with any other work. Details: https://github.com/cenksimsek1988/cenk-overtime/blob/main/PRIVACY.md
 
@@ -74,7 +74,7 @@ Or type `/cenk-overtime:start`. It runs `collect`, `analyse` and `court-package`
 - "python3" opens the Microsoft Store on Windows: the script also tries `python` and `py`.
 - A program was installed but is not found: start a new Claude Code session, or use the path the tools check prints.
 - Scanned documents come out garbled: their language pack is missing; the plugin offers to download it.
-- No Google Drive for desktop: keep the case folder on your computer and upload its `for-lawyer` folder before you share it.
+- No Google Drive for desktop: keep the case folder on your computer and upload its evidence folder before you share it.
 
 ## License
 

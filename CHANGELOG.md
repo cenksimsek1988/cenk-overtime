@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.9.0 - 2026-11-12
+
+The lawyer gets plain folders instead of a zip, and a summary anyone can read.
+
+- `court-package`, section 3: the package goes into the case's evidence folder as plain numbered folders, with no zip: `1_Summary/`, `2_Report/`, `3_Processed_Data/` (spreadsheet, database, masked records), `4_Raw_Data/` (the evidence as received), `5_Calculation/` (method document, rebuild tool, models), and `HASHES_SHA256.txt`. They are folders because Drive and Explorer list folders before files. Names are in English and the same in every case; the folder's README explains them in the court's language and replaces the package's `README.txt`.
+- `court-package`, section 4: the summary is written for a reader who knows only addition, subtraction, multiplication and division. Every number is a count, a sum, a difference, an average or "N times as many", with one line on how it was counted and one real day as an example. Shares are "N of M", there are no statistical words, and model results stay in the report. A new method document, `5_Calculation/Method.pdf`, explains every step with a worked example, like a whitepaper. The report's method chapter points to it instead of repeating it.
+- `court-package`, sections 6 and 7: `HASHES_SHA256.txt` lists every file except the README, `4_Raw_Data/hashes.txt` and `6_From_Lawyer/`, which change later, so evidence added later does not break the check. Its own SHA-256 replaces the zip's for the same-day deposit. The audit also checks the summary rules and the method document against the tool. Delivery never touches `6_From_Lawyer/`, and moves a package from an earlier version out of the evidence folder.
+- `start`, sections 0, 1 and 3: a case folder sits in one folder for all the person's legal cases (`Legal cases` by default, was `overtime-cases`; existing cases there are still found), which may hold other cases that the plugin never opens. The shared folder is `<case>-evidence/`, starting with the case name because a lawyer's "Shared with me" lists folders by name only. `raw/` is now `4_Raw_Data/`, and `6_From_Lawyer/` holds the lawyers' own documents. Cases in an earlier layout are offered a move: `for-lawyer/` is renamed (a rename inside Drive keeps the upload dates and shares), `hashes.txt` keeps its lines, and earlier paths stay in `evidence_files.note`.
+- `start`, section 7: the lawyers get Viewer on the evidence folder and Editor on `6_From_Lawyer/`, because a personal Google account has no role that only adds files.
+- `collect`, `analyse`, the READMEs, `PRIVACY.md` and the guide name the evidence folder and `4_Raw_Data/`.
+
 ## 0.8.1 - 2026-11-10
 
 Gaps the commit review of 0.8.0 found.
