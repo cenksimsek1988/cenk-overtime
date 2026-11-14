@@ -41,7 +41,7 @@ Cenk's Claude Code plugin for employees who claim unpaid overtime. Public: githu
 
 1. Raise `version` in `cenk-overtime/.claude-plugin/plugin.json`; add a CHANGELOG entry.
 2. Run the checks, commit with `/cenk-workbench:commit`, push.
-3. Pack the release commit's `cenk-overtime/` (`.claude-plugin/plugin.json` at the zip root) with `git -c core.autocrlf=false archive --format=zip -o cenk-overtime.plugin <commit>:cenk-overtime`, check that no file in the zip contains a CR, then `gh release create vX.Y.Z cenk-overtime.plugin --target <full commit hash> --title "cenk-overtime X.Y.Z" --notes-file <notes> --latest`. The notes keep the previous release's opening and install text (`gh release view <tag>`), then list the changes in plain words.
+3. Pack the release commit's `cenk-overtime/` (`.claude-plugin/plugin.json` at the zip root) with `git -c core.autocrlf=false archive --format=zip -o cenk-overtime.plugin <commit>:cenk-overtime`, check that no file in the zip contains a CR (count CR bytes per extracted file with `tr -cd '\r' < file | wc -c`), then `gh release create vX.Y.Z cenk-overtime.plugin --target <full commit hash> --title "cenk-overtime X.Y.Z" --notes-file <notes> --latest`. The notes keep the previous release's opening and install text (`gh release view <tag>`), then list the changes in plain words.
 4. `claude plugin marketplace update cenk-overtime`, then `claude plugin update cenk-overtime@cenk-overtime` (Cenk's install uses this folder as a directory marketplace).
 
 ## Quirks
