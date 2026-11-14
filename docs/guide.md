@@ -159,13 +159,14 @@ The package goes into one folder of the case, the only one the lawyer gets: plai
 | Folder or file | Contents | Main reader |
 | --- | --- | --- |
 | README.md | Start here: what each folder holds, how to check the fingerprints, that it was made with AI help | Everyone |
+| NOTE_FOR_LAWYER.md | For the lawyer only, never filed: judgment calls, points the other side could use, records to request from the employer | Lawyer |
 | 1_Summary/ | 3–4 pages anyone can follow with plus, minus, times and divide: counts, sums, averages, each with how it was counted and one real day as an example; what the report does not show | Lawyer, judge |
 | 2_Report/ | Distributions, time estimates, release analysis with the regression checks, git, validation and limitations; annexes with every period, event evidence, manual decisions, data dictionary | Court expert |
 | 3_Processed_Data/ | Spreadsheet with live formulas checked against the database; SQLite, CSV per table, ready-made queries; masked records, collection notes, git metadata | Court expert, analyst |
 | 4_Raw_Data/ | The evidence as received, unmasked, with the fingerprint of each file | Lawyer, court expert |
 | 5_Calculation/ | Method document like a whitepaper (every step with a worked example), the script that rebuilds everything from the masked records, the regression code, a how-to | Court expert |
 | 6_From_Lawyer/ | The lawyer's own documents: the lawyer can add files here and nowhere else | Lawyer |
-| HASHES_SHA256.txt | Fingerprints of every file except the README, the raw-data hash list and the lawyer's folder, which change later | Everyone |
+| HASHES_SHA256.txt | Fingerprints of every file in folders 1 to 5 except the raw-data hash list; the README, the note and the lawyer's folder are outside it | Everyone |
 
 Make it reproducible (the packaged tool rebuilds identical tables), remove cache files before hashing, deposit the SHA-256 of HASHES_SHA256.txt the same day, and have an independent audit before hand-over. When an AI assistant built the package, say so on the summary, the report, the method document and the README. The package is a draft until the lawyer has checked it: nothing is filed or sent to the employer before that.
 

@@ -39,6 +39,8 @@ Not legal advice. Before exporting anything from employer systems, tell the pers
 | Git | Read-only git on local clones (section 4) | hash, author email/name, author date, committer date, subject, numstat, tags, release branches | Multiple identities; clones; never copy code |
 | Issue tracker, CI/CD, registry, VPN, SSO, badge, server/audit logs | Usually employer-held: list them for the lawyer to request | | Retention is often months: request early |
 
+Gmail: a connector returns a message's text and main headers, not the message as it was sent. The original, with its signature headers (`DKIM-Signature`, `ARC-Seal`) intact, comes only from Gmail's own "Show original", then "Download original", one message at a time, in the person's own signed-in browser. Use it for the few messages whose authenticity may be disputed; the downloaded `.eml` comes in as evidence through `cenk-overtime:start`, section 5.
+
 ## 3. Chat/email collection by time windows
 
 1. Generate windows covering every out-of-hours span in the employment window: each weekday evening from shift end to next shift start + 1 min (e.g. 18:00 -> 09:01) and each weekend from Friday shift end to Monday 09:01. Store them (`windows.json`).
@@ -100,8 +102,10 @@ A mail archive is an Outlook backup (.pst), an mbox file or a folder of .eml fil
 4. Read what the build prints: messages, messages without text, read errors. Record them in the collection notes, with the source's SHA-256.
 5. From then on, answer every question about that mail from the index with `search`, never by reading the archive again. Search the body, not only subjects and attachment names. Example: `search --index <index> 'release AND (tonight OR weekend)' --since 2024-01-01 --zone Europe/Rome`
 6. Every answer from the index says what was not searched: attachment contents, and the count of messages without text (the last line `search` prints).
-7. `search` prints header lines only. Add `--snippet` only when the subject is not enough to judge a message; it hides values that look like secrets. Never print a message's whole body into the chat.
+7. `search` prints header lines only, because message text can hold passwords, keys and other people's private matters. Add `--snippet` only when the subject is not enough to judge a message; it hides values that look like secrets. Never print a message's whole body into the chat.
 8. Before a message from an archive goes into the evidence folder: save the copy in `work/staging/` first, and run `secrets --index <index>`. A message it lists goes in with its headers only, or after the person decides; a message with a login, key or token never goes in whole.
+9. Treat every thread about setting up an account as holding credentials, even when `secrets` lists nothing in it: the script does not read attachments, and a certificate or key file is one. Such a message goes into the evidence folder with its headers only; the full message stays in `work/`. Example: threads about a VPN account, two-factor keys, a client certificate, a first password. This rule is for single messages: a whole archive brought in as evidence is covered by the warning in `cenk-overtime:start`, section 7.
+10. A mail may carry its files as links to the employer's cloud storage instead of attachments; expense claims and timesheets often do. List them from the index's `links` table. While the person may still access the work account, and after the lawyer's word on what may be used, they save those files, which come in as evidence through `cenk-overtime:start`, section 5. After the account closes, add each file's name, the mail's date and subject to the list of employer-held records for the lawyer to request. Example: a claim mail with three storage links and no attachment gives three lines on that list.
 
 Query syntax, columns, what a `.pst` needs and the limits: `references/mail-index.md`. On `index: no`, read the archive directly as above.
 
@@ -145,4 +149,5 @@ One record per trace:
 - [ ] Collection notes: windows, empty windows, re-checks, dropped copies, tools, dates
 - [ ] Identity list and employment window confirmed with the person
 - [ ] Normalized table with both clocks, categories ready for analysis
-- [ ] List of employer-held records for the lawyer to request (VPN/SSO, git server push logs, CI/CD, tracker histories, audit logs, attendance/leave)
+- [ ] List of employer-held records for the lawyer to request (VPN/SSO, git server push logs, CI/CD, tracker histories, audit logs, attendance/leave, files that mails only link to in the employer's cloud storage)
+- [ ] Account-setup threads in the evidence folder with headers only

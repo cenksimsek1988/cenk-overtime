@@ -42,7 +42,7 @@ In the first message, list the cases found (name, account, last change) and ask 
 - **Case in an earlier layout** (`for-lawyer/` from versions 0.5.0 to 0.8, or `originals/` and `outputs/` from before 0.5.0): before anything else, offer to move it to the layout in section 3. List what moves where, and wait for the yes:
   1. `for-lawyer/` is renamed `<case>-evidence/`, and its `raw/` becomes `4_Raw_Data/`; create `6_From_Lawyer/` in it. A rename inside Drive keeps the upload dates and the folder's shares. The summary, report, spreadsheet and zip at its top stay until `cenk-overtime:court-package` delivers a version in the new layout (its section 7).
   2. Before 0.5.0: `originals/<source>/...` goes to `<case>-evidence/4_Raw_Data/<source>/...`, with the same subfolders. `outputs/<name>.sql` goes to `work/queries/<name>.sql`. The other files in `outputs/` go to the evidence folder's top, except those the person keeps in `work/`: drafts, earlier versions, anything unmasked.
-  3. When the person keeps their legal cases in another folder than the one holding this case, offer to move the case folder there. A move inside one Google account keeps upload dates and shares. A move to another account is a copy: new upload dates and no shares; copy, check every hash, and leave the original until the person deletes it.
+  3. When the person keeps their legal cases in another folder than the one holding this case, offer to move the case folder there. Before the move, list who the target folder and the folders above it are shared with: everyone with access there gets the whole case folder, database and working files included. If anyone is listed, tell the person and wait until they have removed that access or picked another folder. Example: a cases folder shared with a lawyer as Editor would show that lawyer `master.sqlite` and `work/`. A move inside one Google account keeps upload dates and shares. A move to another account is a copy: new upload dates and no shares; copy, check every hash, and leave the original until the person deletes it.
   4. Move, do not copy, except across accounts (step 3). Hash each file before and after the move: the two must match, and match `evidence_files.sha256` where the file has a row.
   5. In `evidence_files`, set `case_path` to the new path and add the earlier one to `note`, after what `note` already holds (`case_path was for-lawyer/raw/email/sent.mbox until 2026-11-12`). Without `master.sqlite`: create it (section 4), then record each moved file as in section 5, step 4, from what the case `README.md` says about it, with the earlier path in `note`; ask what the README does not say.
   6. Write `4_Raw_Data/hashes.txt` (section 5, step 5; its paths are relative to the folder, so a renamed `raw/` keeps the same lines) and the evidence folder's `README.md` (section 3), update the case `README.md`, record the move in `decisions`, and remove emptied folders.
@@ -89,6 +89,8 @@ Find it on the computer through Google Drive for desktop, which shows each signe
 
 If several accounts appear, ask which one. If Google Drive for desktop is not installed, ask the person to install it and sign in with their own account; if they would rather not, create the folder on the computer and tell them to upload the evidence folder to their Drive before sharing it. Paths here contain spaces (`My Drive`): quote them in every command.
 
+Before a case folder is created in a cases folder that already exists, or moved into one, check that the cases folder is shared with nobody: a folder's shares cover everything put into it later. With a Google Drive connector, read the folder's permissions; otherwise ask the person to look on drive.google.com (right-click the folder, Share). If it is shared, the person removes that access or names another folder first.
+
 Create this layout:
 
 ```
@@ -103,6 +105,7 @@ Create this layout:
       README.md          start here: what each folder holds, in plain words
       1_Summary/  2_Report/  3_Processed_Data/  5_Calculation/  HASHES_SHA256.txt
                          the court package (cenk-overtime:court-package, section 3), once it is built
+      NOTE_FOR_LAWYER.md a note for the lawyer only, written when a package is delivered
       4_Raw_Data/<source>/   evidence as received, with its own subfolders: never edited (section 5)
       4_Raw_Data/hashes.txt  SHA-256 of every file in 4_Raw_Data/, paths relative to it
       6_From_Lawyer/     the lawyers' own documents (section 7)

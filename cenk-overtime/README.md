@@ -19,7 +19,7 @@ Not legal advice. The plugin organises your own records and counts hours. It doe
 - Collects what you sent or did: sent email, work chat, WhatsApp exports, calls, calendar.
 - Counts your evenings, nights, mornings and weekends, and gives a low and a high estimate of the hours, weekday and weekend apart.
 - Tests the patterns with standard regression models (more out-of-hours work on release days, weekend work near releases, the load over the years), and explains each result in plain words, with what it does not show.
-- Builds a package for your lawyer as plain folders, no zip: a summary anyone can follow with plus, minus, times and divide, a full report, the processed data, and a method document like a whitepaper with a tool that rebuilds every number. Passwords and private life are masked first.
+- Builds a package for your lawyer as plain folders, no zip: a summary anyone can follow with plus, minus, times and divide, a full report, the processed data, and a method document like a whitepaper with a tool that rebuilds every number. Passwords and private life are masked first. A separate note tells your lawyer, and only your lawyer, what to look at before filing.
 - Marks the package as prepared with the help of AI, for your lawyer to check before anything is filed.
 
 ## What it does not do
@@ -59,6 +59,7 @@ Or type `/cenk-overtime:start`. It runs `collect`, `analyse` and `court-package`
 - Runs `skills/analyse/scripts/models.py` (pandas, statsmodels, scipy) on the case database for the regression checks.
 - For a large set of files, the privacy review, the final audit and the check of its fixes, Claude hands parts of the work to subagents, each on a named Claude model.
 - For the package, Claude writes a small Python tool that rebuilds every number, runs it on your computer, and puts it in the package.
+- Runs `skills/court-package/scripts/deliver.py` to deliver a finished package: it moves the earlier version out of the evidence folder into the case's `work/` folder, copies the new one in with a note for your lawyer only, writes the SHA-256 list and checks it. It never changes your evidence in `4_Raw_Data/` or your lawyer's folder.
 - Reads only the files and folders you agree to. It never opens password managers, vaults or key folders.
 - Network: `git clone` of the employer repositories you name, with your own git login, into `~/overtime-clones/` on your computer. Each clone is deleted after reading, unless you ask to keep it. Program and package downloads after your yes; no case data goes with them.
 - Your case folder syncs to your Google Drive through Google Drive for desktop.

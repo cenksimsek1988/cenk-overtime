@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.11.0 - 2026-11-14
+
+Nine lessons from a running case: shares checked before a move, a note for the lawyer only, a delivery script.
+
+- `start`, sections 0 and 3: before a case folder is created in or moved into a folder, Claude lists who that folder is shared with; everyone with access there would get the whole case, database included. The person removes that access or picks another folder first.
+- `court-package`, sections 3 and 7: a new `NOTE_FOR_LAWYER.md` at the evidence folder's top, written at delivery for the lawyer only: judgment calls, items the other side could use (by id and kind, never quoted), records to request from the employer. It is outside the package folders and outside `HASHES_SHA256.txt`, which now lists folders 1 to 5 only.
+- New `court-package/scripts/deliver.py` (standard library) delivers a version: it checks `4_Raw_Data/hashes.txt`, moves the earlier package to `work/package/delivered-vN/`, copies the new one in, writes `HASHES_SHA256.txt` in the evidence folder, reads every file again, fills the README's package part and prints the hash for the deposit; `--dry-run` lists all of it first. Every check and read comes before the move; it refuses links and junctions in the package, listed paths outside `4_Raw_Data/` and a README with broken markers, and after a stop it names the label to run again with. It never touches `4_Raw_Data/` or `6_From_Lawyer/`. Before, the text said to copy the hash list from `work/`, where the raw files it lists do not exist. The earlier version always moves out: two versions cannot share the folder names.
+- `court-package`, section 4, summary: a worked example adds up as printed (whole-minute traces, or the seconds shown); a figure is rounded once, from the unrounded value, half up; a comparison is like for like, with both divisors named. Seen before: a table rounded twice and showed a figure one tenth too low.
+- `court-package`, section 4, method document: it says that the two-clock rule applies to messages and that commits count by author time, and how the period groups are formed. The report never repeats the method's wording. The audit checks all of these.
+- `collect`, mail archives: threads about setting up an account (VPN, two-factor keys, certificates) are treated as holding credentials even when `secrets` lists nothing, and go into the evidence folder with headers only; a whole archive brought in as evidence is unchanged. `search` now says why it prints header lines only.
+- `collect`: files that a mail only links to in the employer's cloud storage (expense claims often do) are saved while the person may still access the account, or listed for the lawyer to request. Gmail's "Download original" is named as the only source of a message with its signature headers.
+- New `tests/test-deliver.sh` (60 checks on a made-up case folder), with the helper `tests/make-link.py`. `PRIVACY.md` names the note and the earlier versions kept in `work/package/`.
+
 ## 0.10.0 - 2026-11-14
 
 A large mail archive is indexed once and searched from the index.
