@@ -62,9 +62,11 @@ stub() {
 
 # module NAME DIST: an importable stub package with version 9.9.
 module() {
-	mkdir -p "$W/py/$1" "$W/py/$2-9.9.dist-info"
+	# pip names the folder with underscores: Python does not find a hyphenated one.
+	info="$W/py/$(printf '%s' "$2" | tr - _)-9.9.dist-info"
+	mkdir -p "$W/py/$1" "$info"
 	: >"$W/py/$1/__init__.py"
-	printf 'Metadata-Version: 2.1\nName: %s\nVersion: 9.9\n' "$2" >"$W/py/$2-9.9.dist-info/METADATA"
+	printf 'Metadata-Version: 2.1\nName: %s\nVersion: 9.9\n' "$2" >"$info/METADATA"
 }
 
 # run [ARGS]: the script under test in a world of stubs; JSON goes to $W/out.json.
@@ -145,6 +147,17 @@ check 'apt languages' 'sudo apt install tesseract-ocr-tur tesseract-ocr-deu' "$(
 run --os linux --json
 check 'default language eng' 'eng|' "$(j "','.join(r['ocr']['requested']) + '|' + ','.join(r['ocr']['missing'])")"
 check 'tzdata only on Windows' False "$(j "'tzdata' in item")"
+check 'full-text search in this Python' 'found|feature' "$(j "item['fts5']['status'] + '|' + item['fts5']['kind']")"
+check 'no Outlook reader unless asked' False "$(j "'libpff-python' in item")"
+
+echo '--- an Outlook backup in the evidence'
+run --os windows --pst --json
+check 'Outlook reader missing' missing "$(j "item['libpff-python']['status']")"
+check 'Outlook reader on its own pip line' 'pip install libpff-python' 	"$(j "[c for c in r['install'] if ' -m pip ' in c][-1].split(' -m ', 1)[1]")"
+check 'the other packages without it' False "$(j "'libpff' in [c for c in r['install'] if ' -m pip ' in c][0]")"
+module pypff libpff-python
+run --os windows --pst --json
+check 'Outlook reader found' 'found|9.9' "$(j "item['libpff-python']['status'] + '|' + item['libpff-python']['version']")"
 
 echo '--- text output'
 run --os windows --ocr-lang tur

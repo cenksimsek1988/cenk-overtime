@@ -47,7 +47,7 @@ Or type `/cenk-overtime:start`. It runs `collect`, `analyse` and `court-package`
 
 - Claude Code: the terminal, an IDE extension, or the Code tab of the Claude desktop app. Not tested in Cowork.
 - Google Drive for desktop, signed in with your own Google account.
-- Python 3. The plugin offers to install the rest when your case needs it: ffmpeg, Tesseract OCR with your documents' language, sqlite3, Python packages (PyMuPDF, pdfplumber, openpyxl, python-docx, Pillow, pandas, statsmodels, scipy; tzdata on Windows), and for the package LibreOffice and Playwright with Chromium.
+- Python 3. The plugin offers to install the rest when your case needs it: ffmpeg, Tesseract OCR with your documents' language, sqlite3, Python packages (PyMuPDF, pdfplumber, openpyxl, python-docx, Pillow, pandas, statsmodels, scipy; tzdata on Windows; libpff-python when you have an Outlook backup), and for the package LibreOffice and Playwright with Chromium.
 - For git history: git and bash (Git Bash on Windows).
 
 ## What it runs, reads and sends
@@ -55,6 +55,7 @@ Or type `/cenk-overtime:start`. It runs `collect`, `analyse` and `court-package`
 - Runs `skills/start/scripts/check-tools.py` to see which programs are missing; it installs nothing itself.
 - After your yes, installs what is missing with winget (Windows), Homebrew (macOS) or apt (Debian, Ubuntu), Python packages with pip from PyPI, and text-recognition language data from the Tesseract project on GitHub.
 - Runs `skills/start/scripts/git-history.sh` with bash to read git history, and Python or `sqlite3` for the case database; `skills/start/scripts/contract-offset.py` records the contract zone's UTC offset for the day views.
+- Runs `skills/collect/scripts/mail-index.py` on a large mail archive (an Outlook backup, mbox or .eml files): it builds a search index of every message's people, subject, text, attachment names and links in the case's `work/` folder, which is never shared, and searches it. Its search results (sender, recipients, subject, attachment names, and short excerpts when needed) are shown in your Claude session. The archive itself is only read.
 - Runs `skills/analyse/scripts/models.py` (pandas, statsmodels, scipy) on the case database for the regression checks.
 - For a large set of files, the privacy review, the final audit and the check of its fixes, Claude hands parts of the work to subagents, each on a named Claude model.
 - For the package, Claude writes a small Python tool that rebuilds every number, runs it on your computer, and puts it in the package.

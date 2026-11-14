@@ -11,6 +11,7 @@ Read when `scripts/check-tools.py` reports something missing. The script prints 
 | git, Git Bash | `Git.Git` | `git` | `git` |
 | LibreOffice | `TheDocumentFoundation.LibreOffice` | `--cask libreoffice` | `libreoffice` |
 | Python packages | pip, from PyPI | pip, from PyPI | pip, from PyPI |
+| Outlook backups (.pst), only with `--pst` | pip: `libpff-python` | pip: `libpff-python`; else `libpst` | pip: `libpff-python`; else `pst-utils` |
 | Tesseract language data | `<lang>.traineddata` from github.com/tesseract-ocr/tessdata | in `tesseract-lang` | `tesseract-ocr-<lang>` |
 
 Tesseract codes: `tur` Turkish, `eng` English, `ita` Italian, `deu` German, `spa` Spanish, `fra` French.
@@ -32,6 +33,12 @@ Tesseract codes: `tur` Turkish, `eng` English, `ita` Italian, `deu` German, `spa
 
 - Homebrew's Python and the Python of Debian 12 and Ubuntu 23.04 or later refuse `pip install` outside a virtual environment (PEP 668). The check then prints commands for `~/.cenk-overtime/venv`: run the plugin's Python scripts with that folder's `bin/python`.
 - `apt` needs `sudo`: the person types their password in their own terminal; never ask for it.
+
+## Mail index
+
+- `fts5` in the check: the SQLite inside this Python can build a full-text index. Python from python.org, Homebrew and the usual Linux packages have it. When it is missing there is no install command: `mail-index.py` cannot build, and mail is searched without an index, which is slow.
+- `libpff-python` reads Outlook backups. It has a ready-built package for Windows (seen: Python 3.14, Nov 2026). Where pip has none, it builds from source and needs a C compiler; it has its own pip line, so its failure does not stop the other packages.
+- If it cannot be installed on macOS or Linux: `readpst -o <folder> <backup.pst>` (Homebrew `libpst`, apt `pst-utils`) writes one mbox per folder into a new folder under `work/`; index those mbox files. Not tested.
 
 ## Packages
 

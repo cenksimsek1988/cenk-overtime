@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.10.0 - 2026-11-14
+
+A large mail archive is indexed once and searched from the index.
+
+- `collect`, section 5, "Mail archives": before the first search in an Outlook backup (.pst), an mbox file or a folder of .eml files, `scripts/mail-index.py measure` says whether to index: every Outlook backup, and mbox or .eml sources with more than 10 MB of message text. Claude builds the index without asking the person, and answers every later question about that mail from it. Seen before: an archive read again for every question, on subject lines and attachment names only, was slow and missed a relevant message.
+- New `collect/scripts/mail-index.py` (standard library; SQLite FTS5): `build` indexes folder, times in UTC, people, subject, body text, attachment names and links; `search` takes FTS5 queries with day, folder and sender filters in the contract zone; `folders` counts per folder. Letters match without accents, and the Turkish dotless ı and dotted İ match plain i. For HTML-only messages the link targets (Outlook's safelinks unwrapped) and picture descriptions are kept. Attachment contents are not indexed, and every result says so, with the count of messages that have no text.
+- The index lives in the case's `work/mail-index/`, never shared: it holds other people's mail unmasked, and the script refuses a path inside the evidence folder.
+- Secrets: `search` prints header lines only; `--snippet` adds the matching words with secret-like values hidden, in subjects too; control characters from mail text are never printed. `secrets` lists the messages that hold secret-like words, never the values. A message copied out of an archive is staged in `work/staging/` and checked before it goes into the evidence folder.
+- Outlook backups are read with the `libpff-python` package, on Windows too, where `readpst` does not exist. The Email row of `collect` no longer sends a `.pst` through `readpst`; `start/references/tools.md` keeps it as the fallback for macOS and Linux.
+- `start/scripts/check-tools.py`: a new `fts5` line says whether this Python's SQLite can build the index, and `--pst` asks for the Outlook reader, only when the evidence holds a backup, on its own pip line.
+- New `tests/test-mail-index.sh` (57 checks on a made-up mailbox, hostile text included; the Outlook reader is a stub); `tests/test-check-tools.sh` has 36 checks.
+
 ## 0.9.0 - 2026-11-12
 
 The lawyer gets plain folders instead of a zip, and a summary anyone can read.

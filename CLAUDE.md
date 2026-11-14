@@ -12,7 +12,8 @@ Cenk's Claude Code plugin for employees who claim unpaid overtime. Public: githu
 
 - `.claude-plugin/marketplace.json`: one-plugin marketplace, source `./cenk-overtime`, for a clone and Cenk's own install. Users install from the public catalog `cenk` (repository `cenksimsek1988/claude-plugins`) as `cenk-overtime@cenk`; its entry has no version, so a release needs no change there (6 Nov 2026).
 - `cenk-overtime/skills/`: `start` (tools check, intake, case folder, database, git script), `collect`, `analyse`, `court-package`. The last three have `user-invocable: false`; `start` runs them. Cross-references use `cenk-overtime:<skill>`.
-- Scripts: `start/scripts/check-tools.py` (standard library; lists missing programs and prints install commands, installs nothing), `start/scripts/git-history.sh`, `start/scripts/schema.sql`, `start/scripts/contract-offset.py` (standard library; tzdata on Windows), `analyse/scripts/models.py` (pandas, numpy, statsmodels, scipy).
+- Scripts: `start/scripts/check-tools.py` (standard library; lists missing programs and prints install commands, installs nothing), `start/scripts/git-history.sh`, `start/scripts/schema.sql`, `start/scripts/contract-offset.py` (standard library; tzdata on Windows), `collect/scripts/mail-index.py` (standard library with FTS5; libpff-python only for a `.pst`), `analyse/scripts/models.py` (pandas, numpy, statsmodels, scipy).
+- Mail index, Cenk's decisions (14 Nov 2026, from 0.10.0): Claude indexes without asking the person, every `.pst` and mbox or .eml sources over 10 MB of text; the index lives in the unshared `work/mail-index/`; `search` prints header lines, and `--snippet` hides secret-like values. Reference: `collect/references/mail-index.md`.
 - The git views take days from `author_utc` with the fixed `contract_offset_minutes`; zones with daylight saving inside the window get NULL there, and the analysis converts in Python. Never base a day on `author_date`: its offset is the author's machine's. References read on demand: `start/references/tools.md`, `collect/references/readers-and-checkers.md`.
 - Tools, Cenk's decision (6 Nov 2026): the plugin decides which programs a case needs; it tells the person in plain words that it will install some free programs to read their documents and calculate, without naming libraries, and asks one yes per round. A language pack only when a document in that language turns up or the person writes in it.
 - Subagent models are Claude Code aliases (`haiku`, `sonnet`, `opus`, `fable`). When Anthropic's lineup changes, update the alias line in `collect/references/readers-and-checkers.md` and check the roles in `collect` section 3 and `court-package` sections 2 and 7.
@@ -31,7 +32,8 @@ Cenk's Claude Code plugin for employees who claim unpaid overtime. Public: githu
 ## Check
 
 - `bash tests/test-git-history.sh`: 70 checks on throwaway repositories in the temp folder (also contract-offset.py); `CASE_DIR=<new folder>` puts the case folder elsewhere, such as Google Drive. It loads through `sqlite3` when that is on PATH, else through Python: run it once with each.
-- `sh tests/test-check-tools.sh`: 30 checks with stub programs and stub Python packages; the real ones stay out of sight. In Git Bash it needs a POSIX `TMPDIR` (`/c/Users/...`): the colon in `C:/...` breaks `cygpath -wp`, and 12 checks fail.
+- `sh tests/test-mail-index.sh`: 57 checks of `mail-index.py` on a made-up mbox, .eml folder and an Outlook backup read through a stub of libpff-python; needs FTS5 in Python's SQLite, and tzdata on Windows.
+- `sh tests/test-check-tools.sh`: 36 checks with stub programs and stub Python packages; the real ones stay out of sight. In Git Bash it needs a POSIX `TMPDIR` (`/c/Users/...`): the colon in `C:/...` breaks `cygpath -wp`, and 12 checks fail.
 - `sh tests/test-models.sh`: 68 checks of `models.py` on a made-up two-year case with known effects; needs pandas, numpy, statsmodels and scipy; about a minute.
 - `claude plugin validate --strict` on `cenk-overtime`, `cenk-overtime/skills` and the repository root.
 
@@ -55,5 +57,6 @@ Cenk's Claude Code plugin for employees who claim unpaid overtime. Public: githu
 ## Open
 
 - The `.plugin` upload to claude.ai is untested since 0.2.0; Cowork is untested.
+- `mail-index.py` reading a real `.pst` has no automated test (the test stubs libpff-python); libpff-python on macOS and Linux and the `readpst` fallback are untested.
 - Not tested: macOS and Linux `awk`; `check-tools.py` on macOS and Linux, including the PEP 668 venv commands; the Tools step in a live session.
 - Workbench 0.19.3's `scripts/check-plugin.sh` gives this plugin one FAIL, the description budget (350 against the 1024-character rule under Layout), and one WARN, no `tests/run.sh` (the three test scripts under Check run one by one).

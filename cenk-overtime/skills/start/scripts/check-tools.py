@@ -2,11 +2,12 @@
 """check-tools.py: the programs and Python packages an overtime case uses,
 which of them this computer lacks, and the command that installs each one.
 
-    python check-tools.py [--os windows|macos|linux] [--ocr-lang CODES] [--json]
+    python check-tools.py [--os windows|macos|linux] [--ocr-lang CODES] [--pst] [--json]
 
 --os       the system to print install commands for (default: this one)
 --ocr-lang Tesseract language codes the evidence needs, such as tur,eng
            (default: eng)
+--pst      the evidence holds an Outlook backup (.pst): also ask for its reader
 --json     machine-readable output
 
 Programs are looked for on PATH, then in the usual install folders of the
@@ -73,6 +74,8 @@ MODULES = [
     ("playwright", "playwright", "package", "report HTML to PDF"),
 ]
 # Windows has no time zone database of its own: zoneinfo reads it from this package.
+# Only when the evidence holds an Outlook backup (--pst).
+PST_MODULES = [("pypff", "libpff-python", "reading", "Outlook backups (.pst)")]
 WINDOWS_MODULES = [("tzdata", "tzdata", "analysis", "time zone rules for the contract zone")]
 
 
@@ -174,13 +177,29 @@ def check_programs(os_name):
     return items
 
 
-def check_modules(os_name):
+def check_modules(os_name, pst=False):
     items = []
-    for mod, dist, stage, use in MODULES + (WINDOWS_MODULES if os_name == "windows" else []):
+    wanted = MODULES + (WINDOWS_MODULES if os_name == "windows" else []) + (PST_MODULES if pst else [])
+    for mod, dist, stage, use in wanted:
         found = module_found(mod)
         items.append({"kind": "module", "name": dist, "stage": stage, "use": use, "import": mod,
                       "version": module_version(dist) if found else "", "status": "found" if found else "missing"})
     return items
+
+
+def check_fts5():
+    """The mail index needs FTS5 in the SQLite this Python was built with."""
+    item = {"kind": "feature", "name": "fts5", "stage": "reading", "use": "search index of large mail archives",
+            "version": "", "status": "missing"}
+    try:
+        import sqlite3
+        db = sqlite3.connect(":memory:")
+        db.execute("CREATE VIRTUAL TABLE probe USING fts5(text)")
+        db.close()
+        item["status"], item["version"] = "found", sqlite3.sqlite_version
+    except Exception:  # no sqlite3 module, or one built without FTS5
+        pass
+    return item
 
 
 def browsers_dir(os_name):
@@ -259,15 +278,20 @@ def ocr_commands(os_name, ocr):
 
 
 def python_commands(os_name, modules, chromium, managed):
-    names = [m["name"] for m in modules if m["status"] == "missing"]
+    own_line = [dist for _, dist, _, _ in PST_MODULES]
+    names = [m["name"] for m in modules if m["status"] == "missing" and m["name"] not in own_line]
+    alone = [m["name"] for m in modules if m["status"] == "missing" and m["name"] in own_line]
     python = quote(sys.executable)
     commands = []
-    if managed and names:
+    if managed and (names or alone):
         venv_python = VENV + ("/Scripts/python.exe" if os_name == "windows" else "/bin/python")
         commands.append("%s -m venv %s" % (python, VENV))
         python = venv_python
     if names:
         commands.append("%s -m pip install %s" % (python, " ".join(names)))
+    # Its own line: where it has no ready-built package the install fails, and the others must not fail with it.
+    for name in alone:
+        commands.append("%s -m pip install %s" % (python, name))
     if "playwright" in names or (chromium and chromium["status"] == "missing"):
         commands.append("%s -m playwright install chromium" % python)
     return commands
@@ -276,12 +300,12 @@ def python_commands(os_name, modules, chromium, managed):
 def report(args):
     os_name = args.os or this_os()
     programs = check_programs(os_name)
-    modules = check_modules(os_name)
+    modules = check_modules(os_name, args.pst)
     chromium = check_chromium(os_name, modules)
     tesseract = next(p for p in programs if p["name"] == "tesseract")
     ocr = check_ocr(args.ocr_lang, tesseract["path"])
     managed = externally_managed()
-    items = programs + modules + ([chromium] if chromium else [])
+    items = programs + modules + ([chromium] if chromium else []) + [check_fts5()]
     commands = system_commands(os_name, programs) + ocr_commands(os_name, ocr) + \
         python_commands(os_name, modules, chromium, managed)
     missing = [i["name"] for i in items if i["status"] == "missing"] + ["ocr:" + l for l in ocr["missing"]]
@@ -328,6 +352,7 @@ def main():
     parser.add_argument("--os", choices=["windows", "macos", "linux"], help="system to print install commands for")
     parser.add_argument("--ocr-lang", default="eng", type=lambda s: [l for l in s.split(",") if l],
                         help="Tesseract language codes, such as tur,eng")
+    parser.add_argument("--pst", action="store_true", help="the evidence holds an Outlook backup (.pst)")
     parser.add_argument("--json", action="store_true", help="machine-readable output")
     args = parser.parse_args()
     sys.stdout.reconfigure(encoding="utf-8", errors="replace", newline="\n")

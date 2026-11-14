@@ -32,7 +32,7 @@ Not legal advice. Before exporting anything from employer systems, tell the pers
 |---|---|---|---|
 | Teams / M365 chat | Connector search (e.g. chat message search) with sender = person, one query per out-of-hours window; or eDiscovery/Purview export by the employer | message id, chatId, createdDateTime, text/summary, webUrl | Search results are capped -> windows. Teams message id = send time in epoch ms (second clock). Search `summary` may be truncated with "...". |
 | Slack | Workspace or DM export (JSON per channel per day) | ts (epoch s), user, channel, text | Filter by user id, not display name |
-| Email | Sent folder: Graph/Gmail connector search per window, or export PST/MBOX/EML (PST -> `readpst` -> mbox; read with Python `mailbox`) | Message-ID, Date header (with offset), To/Cc, Subject | Use sent items only; a received mail proves nothing |
+| Email | Sent folder: Graph/Gmail connector search per window, or export PST/MBOX/EML (read as in section 5; a large archive through its index) | Message-ID, Date header (with offset), To/Cc, Subject | Use sent items only; a received mail proves nothing. Never search a large archive message by message |
 | Calendar | ICS export; meeting chats; join/attendance logs | start, end, organizer, response | An invite is not attendance |
 | Calls | Teams/Slack call history; Android call-log backup XML (e.g. SMS Backup & Restore: number, duration, date ms, type); iOS backup tools; carrier statements | start, duration | Map phone numbers to colleagues; personal phone = device local time |
 | WhatsApp / Telegram / Signal | Per chat "Export chat -> without media" (txt) | date, time, sender, text | Format depends on OS and phone language (see below); device local time incl. DST |
@@ -84,11 +84,26 @@ Evidence in `4_Raw_Data/` is read, never changed: every derived file goes to `wo
 - .xlsx: openpyxl, `load_workbook(path, read_only=True, data_only=True)` for the values as last saved; load again without `data_only` for the formulas. A file saved by a program that does not calculate has no values (`None`): read the formulas. pandas `read_excel` for plain tables.
 - Old .doc and .xls: convert a copy with LibreOffice, `soffice --headless --convert-to docx --outdir work/convert <file>` (`xlsx` for .xls).
 - CSV: pandas `read_csv(path, dtype=str)`; encoding `utf-8-sig`, else the exporting system's (`cp1254` for Turkish Windows); `sep=None, engine="python"` when the separator is `;`.
-- Mail: MBOX (also Google Takeout) with Python's `mailbox.mbox(path)`, headers only: `Date`, `From`, `To`, `Message-ID`, `X-Gmail-Labels` (Takeout marks sent mail with `Sent`). EML with `email.message_from_binary_file(f, policy=email.policy.default)`.
+- Mail: first "Mail archives" below. A small archive is read directly: MBOX (also Google Takeout) with Python's `mailbox.mbox(path)`, headers only: `Date`, `From`, `To`, `Message-ID`, `X-Gmail-Labels` (Takeout marks sent mail with `Sent`). EML with `email.message_from_binary_file(f, policy=email.policy.default)`.
 - Images and screenshots: Pillow, `Image.open(path).getexif().get(36867)`, the time taken; chat apps often strip it. Text: Tesseract, as for scans.
 - Screen recordings and videos: `ffprobe -v error -show_entries format=duration:format_tags=creation_time -of json <file>`. Frames every 5 s: `ffmpeg -i <file> -vf fps=1/5 work/frames/%05d.png`; at scene changes: `ffmpeg -i <file> -vf "select='gt(scene,0.3)'" -fps_mode vfr work/frames/%05d.png`. Then Tesseract, or look at the frames. A frame's clock time is creation_time plus its offset only when the file has a creation_time: say which.
 - SQLite files (app backups): open a copy in `work/`, never the file in `4_Raw_Data/`: opening one can write `-wal` and `-shm` files beside it.
 - WhatsApp and other chat exports: section 7.
+
+### Mail archives: index before the first search
+
+A mail archive is an Outlook backup (.pst), an mbox file or a folder of .eml files. Before the first search in one, run `scripts/mail-index.py` in this skill's base directory:
+
+1. `python <skill>/scripts/mail-index.py measure <source>...` ends with `index: yes` or `index: no`. Yes means every Outlook backup, and mbox or .eml sources with more than 10 MB of message text together. For an Outlook backup, first run the tools check of `cenk-overtime:start` with `--pst`.
+2. On yes, build the index without asking the person: it is your working tool, not their decision. Say in one line that you are preparing their mail for searching and that it can take from a few minutes to half an hour for a backup of several gigabytes; run the build in the background. `python <skill>/scripts/mail-index.py build --index "<case>/work/mail-index/<name>.sqlite" <source>...`
+3. The index stays in `work/`: it holds every message unmasked, other people's too. The script refuses a path inside the evidence folder. Offer to delete `work/mail-index/` when the person says the package is final.
+4. Read what the build prints: messages, messages without text, read errors. Record them in the collection notes, with the source's SHA-256.
+5. From then on, answer every question about that mail from the index with `search`, never by reading the archive again. Search the body, not only subjects and attachment names. Example: `search --index <index> 'release AND (tonight OR weekend)' --since 2024-01-01 --zone Europe/Rome`
+6. Every answer from the index says what was not searched: attachment contents, and the count of messages without text (the last line `search` prints).
+7. `search` prints header lines only. Add `--snippet` only when the subject is not enough to judge a message; it hides values that look like secrets. Never print a message's whole body into the chat.
+8. Before a message from an archive goes into the evidence folder: save the copy in `work/staging/` first, and run `secrets --index <index>`. A message it lists goes in with its headers only, or after the person decides; a message with a login, key or token never goes in whole.
+
+Query syntax, columns, what a `.pst` needs and the limits: `references/mail-index.md`. On `index: no`, read the archive directly as above.
 
 ## 6. Many files at once
 

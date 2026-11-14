@@ -21,13 +21,13 @@ This plugin works on the person's own computer: their files, Google Drive for de
 
 ## Tools
 
-At the start of every session, before section 0, run `scripts/check-tools.py` in this skill's base directory with Python 3 (`python3`, `python` or `py`, the first that runs). Give `--ocr-lang` the Tesseract codes of the language the person writes in and of their documents, plus English: `--ocr-lang tur,eng`. The script lists what this computer lacks and prints the install commands; it installs nothing.
+At the start of every session, before section 0, run `scripts/check-tools.py` in this skill's base directory with Python 3 (`python3`, `python` or `py`, the first that runs). Give `--ocr-lang` the Tesseract codes of the language the person writes in and of their documents, plus English: `--ocr-lang tur,eng`. Add `--pst` once the evidence holds an Outlook backup (.pst). The script lists what this computer lacks and prints the install commands; it installs nothing.
 
 - Decide yourself what the case needs; the person does not choose tools. Reading and analysis tools before evidence is read; git and Git Bash when there is git history; LibreOffice and Playwright before `cenk-overtime:court-package`. Leave out what the case does not use.
 - Tell the person in plain words, once per round, that you will install some free programs from their official sources to read their documents and calculate the hours, and ask for one yes. Do not name the programs or libraries, or say which one does what, unless they ask.
 - After the yes, run the printed commands, run the check again, and say in one line that the computer is ready.
 - Language packs: when a document in another language turns up, or the person writes in one, say "I may download the Turkish language pack to read your documents properly" (naming that language), and wait for the yes.
-- If the person says no, go on without it and say what is left out: scanned pages unread, no frames from screen recordings, no regression checks.
+- If the person says no, go on without it and say what is left out: scanned pages unread, no frames from screen recordings, no regression checks, an Outlook backup unread.
 - Call a program by the path the check prints after `run as:` when it is not on PATH. Run the plugin's Python scripts with the Python the check names in its first line.
 - Details per system (official sources, admin prompts, PATH, managed Pythons): `references/tools.md`.
 
