@@ -24,6 +24,7 @@ Not legal advice. Before exporting anything from employer systems, tell the pers
 - Keep originals untouched; work on copies. Hash originals (SHA-256) the day they are collected and tell the person to email the hashes to themselves.
 - Save raw results per query/window before any processing, so collection can be audited.
 - In a case folder from `cenk-overtime:start`: evidence as received (exports, each window's raw result) goes into `4_Raw_Data/<source>/` of the case's evidence folder through its section 5, with hashes. Everything derived (window lists, merges, collection notes, the normalized table) goes into `work/` or `master.sqlite`, which are never shared.
+- Before a download starts in the person's browser, find out where it will land: the Save window opens in the folder used last, which can be the shared evidence folder, and a download started by a script can be blocked without a message. Ask the person to save into `work/staging/`, then check that the file is there and that nothing new sits in the evidence folder. Example: a mail archive saved straight into `<case>-evidence/` is in front of the lawyers, unmasked, until someone notices.
 - Never print secrets found in data back to the user; never copy source code anywhere.
 
 ## 2. Sources and how to get them

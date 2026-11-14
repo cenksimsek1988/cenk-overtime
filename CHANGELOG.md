@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.11.1 - 2026-11-14
+
+- `collect`, section 1: before a download starts in the person's browser, Claude finds out where it will land, asks for `work/staging/`, and checks the evidence folder afterwards. The browser's Save window opens in the folder used last, which can be the shared evidence folder. Seen before: an unmasked file sat in the shared folder for some minutes.
+
 ## 0.11.0 - 2026-11-14
 
 Nine lessons from a running case: shares checked before a move, a note for the lawyer only, a delivery script.
