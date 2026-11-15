@@ -12,6 +12,7 @@ Not legal advice. The plugin organises your own records and counts hours. It doe
 ## What it does
 
 - Asks about your job, contract hours, the period to count and the evidence you already have.
+- Keeps your own facts (name and its spellings, personal email and phone, your Google account, the job's dates, your lawyer) in one profile, `profile.json` in the cenk folder (`My Drive/cenk/` in your Google Drive), shared with the other cenk-* plugins, apart from every case. The plugin cenk-base, installed with this one, keeps it. Claude asks where to create it if there is none and, after your yes, names the folder in your Claude settings as the environment variable `CENK_HOME`, which every cenk-* plugin reads. It is a plain JSON file: whoever can open your Drive can read it. It never holds your address, identity numbers, pay or passwords.
 - Works out which free programs it needs to read your documents and calculate, and installs them from their official sources after your yes.
 - Creates a case folder in your own Google Drive, never your employer's, inside one folder for all your legal cases. You share one folder of it with your lawyer, `<case>-evidence`: your evidence as received and the reports, plus a folder where your lawyer can add documents.
 - Copies your evidence into `<case>-evidence/4_Raw_Data/` unchanged, with its subfolders, and lists a SHA-256 hash of each file in `hashes.txt`.
@@ -45,7 +46,8 @@ Or type `/cenk-overtime:start`. It runs `collect`, `analyse` and `court-package`
 
 ## What you need
 
-- Claude Code: the terminal, an IDE extension, or the Code tab of the Claude desktop app. Not tested in Cowork.
+- Claude Code 2.1.284 or later: the terminal, an IDE extension, or the Code tab of the Claude desktop app. Not tested in Cowork.
+- The plugin cenk-base, which installs with cenk-overtime. After an update from a version before 0.12.0, run `claude plugin install cenk-overtime@cenk` once more: an update does not bring it.
 - Google Drive for desktop, signed in with your own Google account.
 - Python 3. The plugin offers to install the rest when your case needs it: ffmpeg, Tesseract OCR with your documents' language, sqlite3, Python packages (PyMuPDF, pdfplumber, openpyxl, python-docx, Pillow, pandas, statsmodels, scipy; tzdata on Windows; libpff-python when you have an Outlook backup), and for the package LibreOffice and Playwright with Chromium.
 - For git history: git and bash (Git Bash on Windows).
@@ -53,6 +55,7 @@ Or type `/cenk-overtime:start`. It runs `collect`, `analyse` and `court-package`
 ## What it runs, reads and sends
 
 - Runs `skills/start/scripts/check-tools.py` to see which programs are missing; it installs nothing itself.
+- Needs the plugin cenk-base, which `claude plugin install cenk-overtime@cenk` installs with it: its `lib/profile.py` (standard library) reads and writes your profile, keeps each earlier value in the file's `history`, and changes a setting, or `CENK_HOME` in your Claude settings, only after your yes. Its start-up hook sets `CENK_BASE` to its folder in each session.
 - After your yes, installs what is missing with winget (Windows), Homebrew (macOS) or apt (Debian, Ubuntu), Python packages with pip from PyPI, and text-recognition language data from the Tesseract project on GitHub.
 - Runs `skills/start/scripts/git-history.sh` with bash to read git history, and Python or `sqlite3` for the case database; `skills/start/scripts/contract-offset.py` records the contract zone's UTC offset for the day views.
 - Runs `skills/collect/scripts/mail-index.py` on a large mail archive (an Outlook backup, mbox or .eml files): it builds a search index of every message's people, subject, text, attachment names and links in the case's `work/` folder, which is never shared, and searches it. Its search results (sender, recipients, subject, attachment names, and short excerpts when needed) are shown in your Claude session. The archive itself is only read.

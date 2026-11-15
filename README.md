@@ -21,10 +21,11 @@ Start with `/cenk-overtime:start`, or just say "I want to claim my unpaid overti
 
 ## What you need
 
-- Claude Code: the terminal, an IDE extension, or the Code tab of the Claude desktop app. It does not work in claude.ai chat: it needs your files, git and a shell on your computer. Not tested in Cowork.
+- Claude Code 2.1.284 or later: the terminal, an IDE extension, or the Code tab of the Claude desktop app. It does not work in claude.ai chat: it needs your files, git and a shell on your computer. Not tested in Cowork.
 - Google Drive for desktop, signed in with your own Google account, never your employer's.
 - Python 3. The plugin checks for the other free programs it needs (for scanned pages, screen recordings and the calculations) and installs them from their official sources after your yes.
 - For git history: git and bash (Git Bash on Windows).
+- The plugin cenk-base, which keeps your own facts in one profile for every cenk plugin. Installing cenk-overtime installs it too. After an update from a version before 0.12.0, run `claude plugin install cenk-overtime@cenk` once more: an update does not bring it.
 
 ## Install in Claude Code
 
@@ -47,7 +48,7 @@ claude plugin marketplace update cenk
 claude plugin update cenk-overtime@cenk
 ```
 
-From this repository alone (its own catalog, `cenk-overtime`), or from the folder of a clone you change yourself: `claude plugin marketplace add https://github.com/cenksimsek1988/cenk-overtime.git` (or the folder), then `claude plugin install cenk-overtime@cenk-overtime`. A folder install loads your edits at the next session. Install one way only: to switch, first `claude plugin uninstall` the other copy.
+From this repository alone (its own catalog, `cenk-overtime`), or from the folder of a clone you change yourself: `claude plugin marketplace add https://github.com/cenksimsek1988/cenk-overtime.git` (or the folder), then `claude plugin install cenk-overtime@cenk-overtime`. Add the catalog `cenk` too (above): cenk-base comes from it. A folder install loads your edits at the next session. Install one way only: to switch, first `claude plugin uninstall` the other copy.
 
 ## Install in claude.ai or the Claude desktop app
 

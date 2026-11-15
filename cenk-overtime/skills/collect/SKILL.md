@@ -16,7 +16,7 @@ Not legal advice. Before exporting anything from employer systems, tell the pers
 - Exact employment window to count. Earlier periods at the same company via a contractor or another employer may not count; cut every source to the agreed window.
 - Which sources exist and are still reachable (accounts are usually closed on the last day: collect immediately).
 - Which conversations are clearly work ("core": team groups, release channels, manager 1:1) vs everything else.
-- Every identity the person used: work emails (old and new domains), personal email, names with/without diacritics, machine-default git identities.
+- Every identity the person used: work emails (old and new domains), personal email, names with/without diacritics, machine-default git identities. The person's own (`person.name`, `person.name_variants`, `person.emails`, `person.phone`) come from the profile, the work ones from `case_info.work_identities` (`cenk-overtime:start`, section Profile).
 
 ## 1. Principles
 

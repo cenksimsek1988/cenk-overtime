@@ -31,6 +31,24 @@ At the start of every session, before section 0, run `scripts/check-tools.py` in
 - Call a program by the path the check prints after `run as:` when it is not on PATH. Run the plugin's Python scripts with the Python the check names in its first line.
 - Details per system (official sources, admin prompts, PATH, managed Pythons): `references/tools.md`.
 
+## Profile
+
+The person's own facts live in one profile shared with the other cenk-* plugins, never in a case: the case folder syncs to Google Drive, and its evidence folder goes to the lawyers. The profile is `profile.json` in the cenk folder, which every cenk-* plugin shares (`My Drive/cenk/` by default; the environment variable `CENK_HOME` names it). The plugin cenk-base, which installs with this one, reads and writes it: `python -I "$CENK_BASE/lib/profile.py" <command>` (`python3` where `python` is not there; its docstring lists every command). Never import it as `profile`: Python has its own module of that name.
+
+- At the start of every session, before section 0, check that cenk-base is there: `CENK_BASE` set and `"$CENK_BASE/lib/profile.py"` a file. If not, tell the person in plain words that a part this plugin needs is missing, usually after an update, and give the command that installs it with this plugin (`claude plugin update` does not), then a restart of Claude: `claude plugin install cenk-overtime@cenk`. Stop until it is there.
+- Run `profile.py path`. Nothing printed: ask the person where to create the cenk folder, suggesting the folder `profile.py home` prints (`My Drive/cenk/` in their own Google Drive), then run `create <folder>`. It refuses a folder inside a case folder.
+- When `create` says nothing finds the new profile yet, ask whether to set `CENK_HOME` in their Claude settings, saying that this changes their Claude settings and that Claude must restart to see it; after the yes, run the `pin` command it prints. Example: `pin "G:/My Drive/cenk" --yes` writes `"env": {"CENK_HOME": "G:/My Drive/cenk"}` and keeps everything else in `settings.json`.
+- A note that the profile is at an old place (`claude/profile.json`, or the file `CENK_PROFILE` names): offer the move it describes; `create` copies the profile, and the old file stays until the person says to delete it. The cases stay where they are.
+- Read each of these before asking for it; save a new answer at once with `set <key> <json>`:
+  - `person.name`, `person.name_variants` (spellings with and without diacritics), `person.email`, `person.emails` (every personal address), `person.phone`. Example: `set person.name_variants '["Ayşe Çelik", "Ayse Celik"]'`.
+  - `accounts.drive`: the person's own Google account, suggested for a new case folder.
+  - `employment.<employer>-<start year>`: `{employer, role, start, end, location, source}`, the job's true dates; `end` is `null` while the job goes on. `case_info.employment_id` names the case's entry. Example: `acme-2021`.
+  - `contacts.lawyer-<first name>`: `{name, role, email, phone, relation, since, source}`. Example: `contacts.lawyer-jo`.
+- The case keeps its own facts in `case_info`: what a working day looked like, contract hours, days and zone, the lived zone, the window, work identities (work emails, chat display names, git names), the case folder. Example: `ayse.celik@acme.example` is a work identity in `case_info`; `ayse@private.example` is `person.emails` in the profile.
+- Never stored, in the profile or the case: home address, identity numbers, pay, bank details, passwords.
+- To change a value, pass the current one: `set person.phone '"+90 555 000 0000"' --old '"+90 555 000 0001"'`. Exit 3: the profile holds another value; show the person both and ask which is right. A key under `settings` changes only with `--yes`, after the person's yes for it.
+- A profile value is never written into the case `README.md`, the evidence folder or a package file. Evidence in `4_Raw_Data/` stays as received, whatever it contains.
+
 ## 0. Which case
 
 Before the intake, find the cases the person already has, in every Google Drive account on the computer (section 3 says where each account appears). A case is a folder two levels below `My Drive` (`My Drive/<cases folder>/<case>/`) that holds `master.sqlite` or its evidence folder `<case>-evidence/`; cases from earlier versions hold `for-lawyer/`, `originals/` or `outputs/` instead. Look at folder names only: other folders there, such as cases this plugin did not make, are never opened. For each case, read only its `README.md` and, if `master.sqlite` exists, its `case_info` table. Do not open the evidence folder, `git/` or `work/` yet, nor `for-lawyer/`, `originals/` and `outputs/`.
@@ -38,6 +56,7 @@ Before the intake, find the cases the person already has, in every Google Drive 
 In the first message, list the cases found (name, account, last change) and ask whether to continue one of them or start a new one. If none is found, say so and go on to the intake.
 
 - **New case:** sections 1 to 7 in order.
+- **Case with personal facts in `case_info`** (from before 0.12.0: `drive_account`, or identity keys that hold the person's name, a personal email or phone): before anything else, list those keys by name and where each value goes in the profile, and wait for the yes. Then, one key at a time: `set` the value in the profile (already there: nothing to do; another value there: exit 3, show both and ask), and fill the case's `employment` entry and `employment_id` from what `case_info` and `README.md` say about the job. Work identities stay, under `work_identities`. Only after every value is in the profile, delete the moved keys from `case_info`, run `VACUUM` on `master.sqlite` so the deleted values leave its free pages, and record the move in `decisions` by key name, never by value. Example: `identities` holding `ayse@private.example, ayse.celik@acme.example` puts the first in `person.emails` and keeps the second as `work_identities`.
 - **Existing case:** show what `case_info` and `README.md` already answer, ask the intake questions that are still open (in one message, as in section 1), and save the answers in `case_info`. Then go on from the first of sections 3 to 7 that is not done, for example section 4 when there is no `master.sqlite` yet. Files from earlier work that do not fit the layout in section 3 stay where they are: ask before moving or redoing any of them.
 - **Case in an earlier layout** (`for-lawyer/` from versions 0.5.0 to 0.8, or `originals/` and `outputs/` from before 0.5.0): before anything else, offer to move it to the layout in section 3. List what moves where, and wait for the yes:
   1. `for-lawyer/` is renamed `<case>-evidence/`, and its `raw/` becomes `4_Raw_Data/`; create `6_From_Lawyer/` in it. A rename inside Drive keeps the upload dates and the folder's shares. The summary, report, spreadsheet and zip at its top stay until `cenk-overtime:court-package` delivers a version in the new layout (its section 7).
@@ -52,16 +71,16 @@ In the first message, list the cases found (name, account, last change) and ask 
 
 For a new case, ask everything at once, in the person's language, and wait for the answers:
 
-1. **Job:** role and what a working day looked like (code, support, sales, shifts...). This picks the sources in section 2.
+1. **Job:** employer, role, first and last day of the job (the profile's `employment` entry, when it has one), and what a working day looked like (code, support, sales, shifts...). The working day picks the sources in section 2.
 2. **Contract:** working hours and days, and the contract's time zone (saved as an IANA name: `Europe/Istanbul`). Where they actually lived and worked.
 3. **Window:** first and last day to count. Earlier periods at the same company through a contractor or another employer may not count.
-4. **Identities:** every work and personal email, name spellings (with and without diacritics), chat display names, git names.
+4. **Identities:** every work and personal email, name spellings (with and without diacritics), personal phone, chat display names, git names. Ask only for what the profile does not hold.
 5. **Evidence:** do they already have all of it, some of it, or none and want help finding it?
 6. **Existing evidence:** where it is now (folders, drives, email attachments, phone exports).
 7. **Git:** did they write code or configuration? Local clones on their computer (paths) and repository URLs. For each URL: are they still allowed to access it (still employed, or written permission)?
-8. **Case folder:** which Google account to keep it in, the folder that holds the person's legal cases [`Legal cases`; an existing one may hold other cases, which this plugin never opens], and a short name for the case [`<employer>-<year the job ended>`]. It must be the person's own account, never the employer's Google Workspace or a Drive the employer manages: the folder holds their evidence, and its evidence folder will be shared with their lawyers.
+8. **Case folder:** which Google account to keep it in [`accounts.drive` from the profile], the folder that holds the person's legal cases [`Legal cases`; an existing one may hold other cases, which this plugin never opens], and a short name for the case [`<employer>-<year the job ended>`]. It must be the person's own account, never the employer's Google Workspace or a Drive the employer manages: the folder holds their evidence, and its evidence folder will be shared with their lawyers.
 
-These answers also cover section 0 of `cenk-overtime:collect`: do not ask them again there. Save them in `case_info` (section 4), including `drive_account` and `case_folder`.
+These answers also cover section 0 of `cenk-overtime:collect`: do not ask them again there. Save the person's own facts in the profile (section Profile) and the case's in `case_info` (section 4), including `employment_id`, `work_identities` and `case_folder`.
 
 ## 2. Likely sources by job
 
@@ -135,7 +154,7 @@ Create `master.sqlite` from `scripts/schema.sql` in this skill's base directory,
 
 | Table | One row per |
 |---|---|
-| `case_info` | intake answer: `key`, `value`, `note` (`job`, `contract_hours`, `contract_days`, `contract_zone` as an IANA name, `lived_zone`, `window_from`, `window_to` as `YYYY-MM-DD`, `contract_offset_minutes` from `scripts/contract-offset.py`, `drive_account`, `case_folder`...) |
+| `case_info` | intake answer: `key`, `value`, `note` (`job`, `contract_hours`, `contract_days`, `contract_zone` as an IANA name, `lived_zone`, `window_from`, `window_to` as `YYYY-MM-DD`, `contract_offset_minutes` from `scripts/contract-offset.py`, `employment_id`, `work_identities`, `case_folder`...; never the person's own facts, which are in the profile) |
 | `evidence_files` | file in `4_Raw_Data/`: source, original path, case path, SHA-256, size, original modification time, date received, method, note (earlier case paths too) |
 | `traces` | normalized record (`cenk-overtime:collect`, section 8), with `file_id` pointing to the evidence file it came from |
 | `repos` | repository source the script read: kind, remote host, commit counts (own and others) |
@@ -201,7 +220,7 @@ Sharing is the person's decision: never share without their yes for each email a
 
 1. Offer it once sections 3 to 6 are done, or whenever the person asks.
 2. First say what the lawyers will see: everything in the evidence folder, now and later. The evidence in `4_Raw_Data/` is unmasked: original files may contain passwords, tokens or keys that colleagues posted, and colleagues' private messages; masked versions come in the package from `cenk-overtime:court-package`. The case `README.md`, `master.sqlite`, `git/`, `work/` and the git clones are not shared.
-3. Ask for each lawyer's email address. Access is Viewer on the evidence folder and Editor on its `6_From_Lawyer/`, so the lawyers can add their own documents: a personal Google account has no role that only adds files. Editor on the whole evidence folder only if the person asks for it, after saying that editors can change or delete evidence.
+3. Take each lawyer from the profile's `contacts.lawyer-*` entries, and ask only for a lawyer not there, saving them at once (section Profile). The share itself, the lawyer's email with access and date, is a fact of the case and stays in `decisions` (step 6). Access is Viewer on the evidence folder and Editor on its `6_From_Lawyer/`, so the lawyers can add their own documents: a personal Google account has no role that only adds files. Editor on the whole evidence folder only if the person asks for it, after saying that editors can change or delete evidence.
 4. Share the evidence folder and its `6_From_Lawyer/` themselves, never the case folder, the cases folder or anything above them: access to a folder covers everything in it. Before sharing, check that the case folder and the cases folder are shared with nobody. If one is, tell the person and ask them to remove that access first: on drive.google.com, right-click the folder, Share, and choose Remove access next to each name.
 5. With a Google Drive connector, share through it only if it finds this case's `<case>-evidence` folder, the one inside the case folder. If it finds none, it is signed in to another account. Otherwise tell the person how: on drive.google.com, open the case folder, right-click `<case>-evidence`, Share, enter the email, choose Viewer, Send; then open it, right-click `6_From_Lawyer`, Share, choose Editor, Send.
 6. Record each share in `decisions` (who, access, date) and in the case `README.md`.

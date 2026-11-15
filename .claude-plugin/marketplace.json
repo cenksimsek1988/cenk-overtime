@@ -2,6 +2,7 @@
   "name": "cenk-overtime",
   "description": "The cenk-overtime plugin, shared from this folder: help for employees claiming unpaid overtime or extra shifts.",
   "owner": { "name": "Cenk Simsek" },
+  "allowCrossMarketplaceDependenciesOn": ["cenk"],
   "plugins": [
     {
       "name": "cenk-overtime",

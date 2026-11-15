@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.12.0 - 2026-11-15
+
+The person's own facts move out of each case into the profile that every cenk-* plugin shares: Cenk's decision, 15 Nov 2026.
+
+- New dependency: the public base plugin cenk-base, from the same catalog `cenk`, installs with this one and keeps the profile, `profile.json` in the cenk folder (`My Drive/cenk/`, or the folder `CENK_HOME` names). Skills call its `lib/profile.py` through `CENK_BASE`, which its start-up hook sets. Needs Claude Code 2.1.284 or later. An update from an earlier version does not install it: `start` checks for it first and gives the command, `claude plugin install cenk-overtime@cenk`.
+- The repository's own catalog `cenk-overtime` allows dependencies from `cenk` (`allowCrossMarketplaceDependenciesOn`), so a clone or folder install brings cenk-base too, once the `cenk` catalog is added.
+- `start`, new section Profile: name and its spellings, personal emails and phone, `accounts.drive`, the job (`employment.<employer>-<year>`, named by `case_info.employment_id`) and lawyers (`contacts.lawyer-<name>`) are read from the profile before asking and saved there. No profile: Claude asks where, suggesting `My Drive/cenk/`, and after the person's yes sets `CENK_HOME` in their Claude settings. A profile at the old place (`claude/profile.json`) is copied to the cenk folder after their yes. Existing cases stay where they are. Address, identity numbers, pay, bank details and passwords are stored nowhere.
+- `start`, section 0: a case from an earlier version with personal facts in `case_info` (`drive_account`, identity keys) has them moved one key at a time after the person's yes, with compare-and-set; a different value already in the profile is shown and asked about. The keys leave `case_info` only after all are in the profile; `decisions` records key names, never values. No migration script.
+- Work identities (work emails, chat display names, git names) stay in the case, as `case_info.work_identities`. The share records keep each lawyer's email with access and date: they record what Drive did.
+- `collect`: identities come from the profile and `work_identities`. `court-package`, section 7: before the audit, folders 1 to 5, the evidence README and `NOTE_FOR_LAWYER.md` are scanned for the profile's emails and phones; a hit stays only where a record needs it as evidence.
+- New `tests/test-profile.sh`: the dependency in both manifests, and cenk-base's `lib/profile.py` with this plugin's keys on made-up profiles (it unsets `CENK_HOME`, `CENK_PROFILE` and `CENK_BASE` first). README and `PRIVACY.md` name the profile.
+
 ## 0.11.1 - 2026-11-14
 
 - `collect`, section 1: before a download starts in the person's browser, Claude finds out where it will land, asks for `work/staging/`, and checks the evidence folder afterwards. The browser's Save window opens in the folder used last, which can be the shared evidence folder. Seen before: an unmasked file sat in the shared folder for some minutes.
