@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.13.0 - 2026-11-20
+
+A coordinator for the person's cases: Cenk's decision, 20 Nov 2026.
+
+- New skill `coordinate`, titled "Overtime coordinator" (or "Coordinator · cenk-overtime" where the plugin loads from its source folder, as for its developer), run in any folder the person picks. It reads the shared coordinator rules from cenk-base (`references/coordinator.md`, cenk-base 0.2.0 or later; it gives `claude plugin update cenk-base@cenk` when missing) and adds the cases.
+- The case list is `cenk-overtime/cases.md` in the cenk folder: one row per case (name, folder, account, session, state), written only by the coordinator, built from the same Drive scan as `start` section 0 and confirmed by the person row by row. A folder that is gone is marked `missing` and asked about, never guessed.
+- One session per case, started with the case folder as its folder, after `claude plugin install cenk-overtime@<marketplace> --scope local` there (the marketplace the plugin came from), never user scope. The brief names the case and its folder; the session works only there and ends with a hand-off in the case's unshared `work/handoff.md`.
+- `start`, section 0: a session the coordinator started skips the case search and works in the folder its brief names; an empty folder is a new case.
+
 ## 0.12.0 - 2026-11-15
 
 The person's own facts move out of each case into the profile that every cenk-* plugin shares: Cenk's decision, 15 Nov 2026.

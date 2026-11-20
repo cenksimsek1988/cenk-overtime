@@ -42,7 +42,9 @@ Not legal advice. The plugin organises your own records and counts hours. It doe
 - "How many hours did I work on weekends, going by my sent emails and git commits?"
 - "Build the evidence package for my lawyer, with passwords and private messages masked."
 
-Or type `/cenk-overtime:start`. It runs `collect`, `analyse` and `court-package` in order. The skills also answer to Turkish, Italian, German, Spanish and French.
+Or type `/cenk-overtime:start`. It runs `collect`, `analyse` and `court-package` in order.
+
+With more than one case, or to keep each case in its own session, type `/cenk-overtime:coordinate` in a folder of your choice: it keeps the list of your cases and starts one session per case, in that case's folder. The skills also answer to Turkish, Italian, German, Spanish and French.
 
 ## What you need
 
@@ -54,6 +56,7 @@ Or type `/cenk-overtime:start`. It runs `collect`, `analyse` and `court-package`
 
 ## What it runs, reads and sends
 
+- `coordinate` keeps the list of your cases (names, folders, states; no evidence) in `cenk-overtime/cases.md` in your cenk folder. To open a case session it runs `claude plugin install cenk-overtime@<marketplace> --scope local` in that case's folder, which turns the plugin on for that folder only (`.claude/settings.local.json` there), then starts a Claude Code session in it.
 - Runs `skills/start/scripts/check-tools.py` to see which programs are missing; it installs nothing itself.
 - Needs the plugin cenk-base, which `claude plugin install cenk-overtime@cenk` installs with it: its `lib/profile.py` (standard library) reads and writes your profile, keeps each earlier value in the file's `history`, and changes a setting, or `CENK_HOME` in your Claude settings, only after your yes. Its start-up hook sets `CENK_BASE` to its folder in each session.
 - After your yes, installs what is missing with winget (Windows), Homebrew (macOS) or apt (Debian, Ubuntu), Python packages with pip from PyPI, and text-recognition language data from the Tesseract project on GitHub.

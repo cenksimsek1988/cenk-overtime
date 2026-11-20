@@ -51,6 +51,8 @@ The person's own facts live in one profile shared with the other cenk-* plugins,
 
 ## 0. Which case
 
+A session started by `cenk-overtime:coordinate` has its case and folder in its brief: that folder is the case, so skip the search below and work only there. An empty folder is a new case: sections 1 to 7, with that folder as the case folder (section 3's sharing checks still apply).
+
 Before the intake, find the cases the person already has, in every Google Drive account on the computer (section 3 says where each account appears). A case is a folder two levels below `My Drive` (`My Drive/<cases folder>/<case>/`) that holds `master.sqlite` or its evidence folder `<case>-evidence/`; cases from earlier versions hold `for-lawyer/`, `originals/` or `outputs/` instead. Look at folder names only: other folders there, such as cases this plugin did not make, are never opened. For each case, read only its `README.md` and, if `master.sqlite` exists, its `case_info` table. Do not open the evidence folder, `git/` or `work/` yet, nor `for-lawyer/`, `originals/` and `outputs/`.
 
 In the first message, list the cases found (name, account, last change) and ask whether to continue one of them or start a new one. If none is found, say so and go on to the intake.
